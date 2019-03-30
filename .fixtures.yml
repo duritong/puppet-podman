@@ -1,0 +1,15 @@
+# This file can be used to install module dependencies for unit testing
+# See https://github.com/puppetlabs/puppetlabs_spec_helper#using-fixtures for details
+---
+fixtures:
+  forge_modules:
+    sysctl: "duritong/sysctl"
+    concat: "puppetlabs/concat"
+    stdlib: "puppetlabs/stdlib"
+    lvm: "puppetlabs/lvm"
+    mount_core: "puppetlabs/mount_core"
+  repositories:
+    disks:
+      repo: 'https://code.immerda.ch/immerda/puppet-modules/disks'
+    selinux:
+      repo: 'https://code.immerda.ch/immerda/puppet-modules/selinux'
