@@ -1,0 +1,25 @@
+[Unit]
+Description=Container <%= @name %>
+
+[Service]
+StartLimitInterval=20
+StartLimitBurst=5
+TimeoutStartSec=0
+RestartSec=5
+
+User=<%= @user %>
+Group=<%= @group %>
+
+SyslogIdentifier=container-<%= @sanitized_title %>
+
+ExecStartPre=-/usr/bin/podman pull <%= @image %>
+ExecStartPre=-/usr/bin/podman kill <%= @sanitized_title %>
+ExecStart=/usr/bin/podman run \
+  <%= @container_run_flags %> \
+  --name <%= @sanitised_title %> \
+  <%= @image %> \
+  <% if @command %> <%= @command %><% end %>
+ExecStop=-/usr/bin/podman stop <%= @sanitized_title %>
+
+[Install]
+WantedBy=multi-user.target

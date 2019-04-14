@@ -6,6 +6,7 @@
 #   include podman
 class podman(
   $size_container_disk = '5G',
+  $containers          = {},
 ) {
   sysctl::value{
     'user.max_user_namespaces':
@@ -21,36 +22,42 @@ class podman(
   }
 
   if versioncmp($facts['os']['release']['full'],'7.7') < 0 {
-    exec{'curl -o /etc/yum.repos.d/vbatts-shadow-utils-newxidmap-epel-7.repo https://copr.fedorainfracloud.org/coprs/vbatts/shadow-utils-newxidmap/repo/epel-7/vbatts-shadow-utils-newxidmap-epel-7.repo':
-      creates => '/etc/yum.repos.d/vbatts-shadow-utils-newxidmap-epel-7.repo'
-    } -> file{'/etc/yum.repos.d/vbatts-shadow-utils-newxidmap-epel-7.repo':
-      ensure => present,
-    } -> package{'shadow-utils46-newxidmap':
-      ensure => installed
-    } -> Sysctl::Value['user.max_user_namespaces']
+    package{'shadow-utils46-newxidmap':
+      ensure => installed,
+      before => Sysctl::Value['user.max_user_namespaces'],
+    }
   }
 
   if $size_container_disk {
     disks::lv_mount{
-      'container_lv':
-        folder  => '/var/lib/container',
+      'containers_lv':
+        folder  => '/var/lib/containers',
         owner   => 'root',
         group   => 'root',
         mode    => '0711',
         size    => $size_container_disk,
         fs_type => 'xfs',
         seltype => 'container_var_lib_t',
-    } -> selinux::fcontext{
-      '/var/lib/container/users(/.*)?':
-        setype => 'data_home_t',
-    } -> file{
-      '/var/lib/container/users':
-        ensure  => directory,
-        owner   => 'root',
-        group   => 'root',
-        mode    => '0711',
-        seltype => 'data_home_t',
-        before  => Package['podman'];
+        before  => Selinux::Fcontext['/var/lib/containers/users(/.*)?'],
+    }
+  }
+  selinux::fcontext{
+    '/var/lib/containers/users(/.*)?':
+      setype => 'data_home_t',
+  } -> file{
+    '/var/lib/containers/users':
+      ensure  => directory,
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0711',
+      seltype => 'data_home_t',
+      before  => Package['podman'];
+  }
+
+  $containers.each |$n,$con| {
+    podman::container{
+      $n:
+        * => $con,
     }
   }
 }

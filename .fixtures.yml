@@ -13,3 +13,5 @@ fixtures:
       repo: 'https://code.immerda.ch/immerda/puppet-modules/disks'
     selinux:
       repo: 'https://code.immerda.ch/immerda/puppet-modules/selinux'
+    user:
+      repo: 'https://code.immerda.ch/immerda/puppet-modules/user'
