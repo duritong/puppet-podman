@@ -7,7 +7,7 @@ define podman::container(
   Variant[String[1],Integer]
                            $gid,
   String[1]                $group = $user,
-  Enum['present','absent'] $ensure = 'present'
+  Enum['present','absent'] $ensure = 'present',
   String                   $container_name = $title,
   Boolean                  $manage_user    = true,
   Optional[String]         $command        = undef,
@@ -17,16 +17,16 @@ define podman::container(
   if $home_dir {
     $real_home_dir = $home_dir
   } else {
-    $real_home_dir = "/home/${user}",
+    $real_home_dir = "/home/${user}"
   }
   include ::podman
-  $sanitised_title = regsubst($title, '[^0-9A-Za-z.\-_]', '-', 'G'
+  $sanitised_title = regsubst($title, '[^0-9A-Za-z.\-_]', '-', 'G')
   podman::container::user{
     $user:
       group    => $group,
       uid      => $uid,
       gid      => $gid,
-      ensure   => $ensure
+      ensure   => $ensure,
       home_dir => $real_home_dir,
   } -> systemd::unit_file{
     "${container_name}.service":
