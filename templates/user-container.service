@@ -10,7 +10,7 @@ RestartSec=5
 User=<%= @user %>
 Group=<%= @group %>
 
-SyslogIdentifier=container-<%= @sanitised_title %>
+SyslogIdentifier=con-<%= @user %>-<%= @sanitised_title %>
 
 ExecStartPre=-/usr/bin/podman pull <%= @image %>
 ExecStartPre=-/usr/bin/podman kill <%= @sanitised_title %>

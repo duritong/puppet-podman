@@ -29,7 +29,7 @@ define podman::container(
       ensure  => $ensure,
       homedir => $real_homedir,
   } -> systemd::unit_file{
-    "${container_name}.service":
+    "con-${user}-${container_name}.service":
       content => template('podman/user-container.service'),
       enable  => true,
       active  => true,
