@@ -12,22 +12,22 @@ define podman::container(
   Boolean                  $manage_user    = true,
   Optional[String]         $command        = undef,
   Optional[Stdlib::Compat::Absolute_Path]
-                           $home_dir       = undef,
+                           $homedir        = undef,
 ){
-  if $home_dir {
-    $real_home_dir = $home_dir
+  if $homedir {
+    $real_homedir = $homedir
   } else {
-    $real_home_dir = "/home/${user}"
+    $real_homedir = "/home/${user}"
   }
   include ::podman
   $sanitised_title = regsubst($title, '[^0-9A-Za-z.\-_]', '-', 'G')
   podman::container::user{
     $user:
-      group    => $group,
-      uid      => $uid,
-      gid      => $gid,
-      ensure   => $ensure,
-      home_dir => $real_home_dir,
+      group   => $group,
+      uid     => $uid,
+      gid     => $gid,
+      ensure  => $ensure,
+      homedir => $real_homedir,
   } -> systemd::unit_file{
     "${container_name}.service":
       content => template('podman/user-container.service'),
