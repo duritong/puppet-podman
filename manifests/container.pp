@@ -11,6 +11,8 @@ define podman::container(
   String                   $container_name = $title,
   Boolean                  $manage_user    = true,
   Optional[String]         $command        = undef,
+  Array[Pattern[/^\d+:\d+/]]
+                           $ports          = [],
   Optional[Stdlib::Compat::Absolute_Path]
                            $homedir        = undef,
 ){
