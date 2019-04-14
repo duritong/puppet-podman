@@ -47,6 +47,14 @@ define podman::container::user(
         group  => $name,
         mode   => '0640';
     }
+    concat::fragment{
+      "${name}_subuid":
+        target  => '/etc/subuid',
+        content => inline_template('<%= @name + ":" + (@uid + 10000).to_s + ":9999" %>');
+      "${name}_subgid":
+        target  => '/etc/subgid',
+        content => inline_template('<%= @name + ":" + (@gid + 10000).to_s + ":9999" %>');
+    }
   } else {
     File["/var/lib/containers/users/${name}"]{
       ensure  => absent,
