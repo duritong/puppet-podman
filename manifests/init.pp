@@ -1,6 +1,6 @@
-# A description of what this class does
+# Manages containers using podman
 #
-# @summary A short summary of the purpose of this class
+# @summary Run rootless containers on EL hosts
 #
 # @example
 #   include podman
@@ -11,21 +11,17 @@ class podman(
   sysctl::value{
     'user.max_user_namespaces':
       value => '28633'
-  } -> concat{
-    ['/etc/subuid','/etc/subgid' ]:
-      owner => 'root',
-      group => 'root',
-      mode  => '0644',
   } -> package{
     [ 'slirp4netns', 'podman','runc' ]:
       ensure => installed,
   }
-
-  if versioncmp($facts['os']['release']['full'],'7.7') < 0 {
-    package{'shadow-utils46-newxidmap':
-      ensure => installed,
-      before => Sysctl::Value['user.max_user_namespaces'],
-    }
+  # have our own tmpdirs and make it short as sockets
+  # go into that dir, which can have limited length
+  # https://github.com/containers/libpod/issues/4057
+  systemd::tmpfile{
+    "podman_tmp.conf":
+      content => "d /run/pods 711 root root",
+      require => Package['podman'];
   }
 
   if $size_container_disk {
@@ -38,19 +34,20 @@ class podman(
         size    => $size_container_disk,
         fs_type => 'xfs',
         seltype => 'container_var_lib_t',
-        before  => Selinux::Fcontext['/var/lib/containers/users(/.*)?'],
+        #  before  => Selinux::Fcontext['/var/lib/containers/users(/.*)?'],
     }
   }
-  selinux::fcontext{
-    '/var/lib/containers/users(/.*)?':
-      setype => 'data_home_t',
-  } -> file{
+  #  selinux::fcontext{
+  #    '/var/lib/containers/users(/.*)?':
+  #      setype => 'data_home_t',
+  #  } -> file{
+  file{
     '/var/lib/containers/users':
       ensure  => directory,
       owner   => 'root',
       group   => 'root',
       mode    => '0711',
-      seltype => 'data_home_t',
+      #    seltype => 'data_home_t',
       before  => Package['podman'];
   }
 

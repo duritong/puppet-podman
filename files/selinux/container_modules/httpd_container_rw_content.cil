@@ -1,0 +1,13 @@
+(block httpd_container_rw_content
+    (blockinherit container)
+    (blockinherit restricted_net_container)
+    (allow process unreserved_port_t ( tcp_socket (  name_bind ))) 
+    (allow process httpd_log_t ( dir ( open read getattr lock search ioctl add_name remove_name write ))) 
+    (allow process httpd_log_t ( file ( getattr read write append ioctl lock map open create  ))) 
+    (allow process httpd_sys_rw_content_t ( dir ( open read getattr lock search ioctl add_name remove_name write ))) 
+    (allow process httpd_sys_rw_content_t ( file ( getattr read write append ioctl lock map open create  ))) 
+    (allow process httpd_sys_rw_content_t ( sock_file ( getattr read write append open  ))) 
+    (allow process httpd_sys_content_t ( dir ( getattr search open read lock ioctl ))) 
+    (allow process httpd_sys_content_t ( file ( getattr read ioctl lock open  ))) 
+    (allow process httpd_sys_content_t ( sock_file ( getattr read open  ))) 
+)

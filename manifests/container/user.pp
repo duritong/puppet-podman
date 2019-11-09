@@ -6,56 +6,87 @@ define podman::container::user(
                            $gid,
   Stdlib::Compat::Absolute_Path
                            $homedir,
+  Enum['present','absent'] $ensure       = 'present',
   Stdlib::Filemode         $homedir_mode = '0750',
   String[1]                $group        = $name,
-  Enum['present','absent'] $ensure       = 'present',
   Boolean                  $managehome   = true,
+  Boolean                  $manage_user  = true,
 ){
   file{
     "/var/lib/containers/users/${name}":
+      seltype => 'data_home_t',
   }
-  user::managed{
-    $name:
-      ensure       => $ensure,
-      uid          => $uid,
-      gid          => $gid,
-      name_comment => "Container ${name}",
-      managehome   => $managehome,
-      homedir      => $homedir,
-      homedir_mode => $homedir_mode,
-      shell        => '/sbin/nologin',
+  if $manage_user and !defined(User::Managed[$name]) {
+    user::managed{
+      $name:
+        ensure       => $ensure,
+        uid          => $uid,
+        gid          => $gid,
+        name_comment => "Container ${name}",
+        managehome   => $managehome,
+        homedir      => $homedir,
+        homedir_mode => $homedir_mode,
+        shell        => '/sbin/nologin',
+    }
   }
 
+  # https://github.com/containers/libpod/issues/4057
+  systemd::tmpfile{
+    "podman_tmp_${name}.conf":
+      content => "d /run/pods/${uid} 700 ${name} ${name}";
+  }
   if $ensure == 'present' {
     File["/var/lib/containers/users/${name}"]{
       ensure  => directory,
       owner   => $name,
       group   => $name,
-      mode    => '0640',
-      require => User[$name],
+      mode    => '0751',
     } -> file{
-      [ "/var/lib/containers/users/${name}/storage",
+      "/var/lib/containers/users/${name}/storage":
+        ensure  => directory,
+        owner   => $name,
+        group   => $name,
+        mode    => '0751';
+      [ "/var/lib/containers/users/${name}/bin",
+      "${homedir}/.local",
+      "${homedir}/.local/share",
+      "${homedir}/.local/share/containers",
       "${homedir}/.config",
       "${homedir}/.config/containers", ]:
-        ensure => directory,
-        owner  => $name,
-        group  => $name,
-        mode   => '0640';
+        ensure  => directory,
+        owner   => $name,
+        group   => $name,
+        mode    => '0640';
       "${homedir}/.config/containers/storage.conf":
         content => template('podman/users-storage.conf.erb'),
-        owner  => $name,
-        group  => $name,
-        mode   => '0640';
+        owner   => $name,
+        group   => $name,
+        mode    => '0640';
     }
-    concat::fragment{
-      "${name}_subuid":
-        target  => '/etc/subuid',
-        content => inline_template('<%= @name + ":" + (@uid * 10000).to_s + ":9999" %>');
-      "${name}_subgid":
-        target  => '/etc/subgid',
-        content => inline_template('<%= @name + ":" + (@gid * 10000).to_s + ":9999" %>');
+    File["/var/lib/containers/users/${name}/storage"]{
+      seltype => 'data_home_t',
+    }
+    File["/var/lib/containers/users/${name}/bin"]{
+      purge   => true,
+      recurse => true,
+      force   => true,
+    }
+    exec{
+      "init-podman-config-${name}":
+        command => "podman info",
+        creates => "${homedir}/.config/containers/libpod.conf",
+        user    => $name,
+        group   => $name,
+        cwd     => $homedir,
+        require => [ File["${homedir}/.config/containers"],
+                        Exec[systemd-tmpfiles] ],
+        environment => ["HOME=${homedir}",
+                        "XDG_RUNTIME_DIR=/run/pods/${uid}"],
     }
   } else {
+    Systemd::Tmpfile["podman_tmp_${name}.conf"]{
+      ensure => absent,
+    }
     File["/var/lib/containers/users/${name}"]{
       ensure  => absent,
       purge   => true,
