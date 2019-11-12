@@ -36,7 +36,13 @@ define podman::container::user(
       content => "d /run/pods/${uid} 700 ${name} ${name}";
   }
   if $ensure == 'present' {
-    File["/var/lib/containers/users/${name}"]{
+    file{
+      "${homedir}/.bashrc":
+        content => "XDG_RUNTIME_DIR=/run/pods/${uid}\n",
+        owner   => root,
+        group   => $name,
+        mode    => '0640';
+    } -> File["/var/lib/containers/users/${name}"]{
       ensure  => directory,
       owner   => $name,
       group   => $name,
