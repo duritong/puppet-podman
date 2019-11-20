@@ -1,0 +1,4 @@
+if ( $programname isequal "<%= @unique_name %>" ) then {
+  action(type="omfile" file="<%= "#{@logpath}/#{@unique_name}" %>.log" flushOnTXEnd="off")
+  stop
+}

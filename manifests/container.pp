@@ -20,6 +20,8 @@ define podman::container(
   Optional[Stdlib::Compat::Absolute_Path]
                            $homedir     = undef,
   Boolean                  $manage_user = true,
+  Stdlib::Compat::Absolute_Path
+                           $logpath     = '/var/log/containers',
 ){
   if $homedir {
     $real_homedir = $homedir
@@ -32,22 +34,42 @@ define podman::container(
     require "podman::selinux::policy::${run_flags['security-opt-label-type']}"
     Class["podman::selinux::policy::${run_flags['security-opt-label-type']}"] -> Systemd::Unit_file["pod-${user}-${container_name}.service"]
   }
-  podman::container::user{
-    $user:
-      ensure      => $ensure,
-      manage_user => $manage_user,
-      group       => $group,
-      uid         => $uid,
-      gid         => $gid,
-      homedir     => $real_homedir,
-  } -> file{
+
+  $unique_name = "pod-${user}-${container_name}"
+  rsyslog::confd{
+    $unique_name:
+      ensure  => $ensure,
+      content => template('podman/rsyslog-confd.erb'),
+  } -> logrotate::rule{
+    $unique_name:
+      ensure       => $ensure,
+      path         => "${logpath}/${unique_name}.log",
+      compress     => true,
+      copytruncate => true,
+      dateext      => true,
+  }
+  if !defined(Podman::Container::User[$user]) {
+    podman::container::user{
+      $user:
+        ensure      => $ensure,
+        manage_user => $manage_user,
+        group       => $group,
+        uid         => $uid,
+        gid         => $gid,
+        homedir     => $real_homedir,
+        before      => File["/var/lib/containers/users/${user}/bin/${sanitised_title}.sh"],
+    }
+  }
+  file{
     "/var/lib/containers/users/${user}/bin/${sanitised_title}.sh":
+      ensure  => $ensure,
       content => template('podman/user-container.sh.erb'),
       owner   => $uid,
       group   => $gid,
       mode    => '0750';
   } ~> systemd::unit_file{
-    "pod-${user}-${container_name}.service":
+    "${unique_name}.service":
+      ensure  => $ensure,
       content => template('podman/user-container.service.erb'),
       enable  => true,
       active  => true,

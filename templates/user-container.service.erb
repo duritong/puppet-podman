@@ -9,7 +9,7 @@ Group=<%= @group %>
 
 Environment="XDG_RUNTIME_DIR=/run/pods/<%= @uid %>"
 
-SyslogIdentifier=pod-<%= @user %>-<%= @sanitised_title %>
+SyslogIdentifier=<%= @unique_name %>
 
 ExecStart=/var/lib/containers/users/<%= @user %>/bin/<%= @sanitised_title %>.sh start
 ExecStop=/var/lib/containers/users/<%= @user %>/bin/<%= @sanitised_title %>.sh stop
