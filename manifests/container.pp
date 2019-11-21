@@ -1,17 +1,23 @@
 # manages a running container
 define podman::container(
-  String[1,32]             $user,
-  Pattern[/^[\S]*$/]       $image,
+  String[1,32]
+    $user,
+  Pattern[/^[\S]*$/]
+    $image,
   Variant[String[1],Integer]
-                           $uid,
+    $uid,
   Variant[String[1],Integer]
-                           $gid,
-  String[1]                $group       = $user,
-  Enum['present','absent'] $ensure      = 'present',
-  String                   $container_name          = $title,
-  Optional[String]         $command     = undef,
+    $gid,
+  Optional[String[1]]
+    $group          = undef,
+  Enum['present','absent']
+    $ensure         = 'present',
+  String
+    $container_name = $name,
+  Optional[String]
+    $command        = undef,
   Array[Pattern[/^\d+:\d+$/]]
-                           $publish     = [],
+    $publish        = [],
   Array[Variant[Integer,Pattern[/^\d+(:(tcp|udp))?$/]]]
                            $publish_firewall = [],
   Hash[Stdlib::Compat::Absolute_Path,
@@ -34,13 +40,18 @@ define podman::container(
   } else {
     $real_gid = $gid
   }
+  if $group {
+    $real_group = $group
+  } else {
+    $real_group = $user
+  }
   include ::podman
   $sanitised_con_name = regsubst($container_name, '[^0-9A-Za-z._]', '-', 'G')
   $unique_name = regsubst("con-${user}-${container_name}", '[^0-9A-Za-z._]', '-', 'G')
 
   if $run_flags['security-opt-label-type'] {
     require "podman::selinux::policy::${run_flags['security-opt-label-type']}"
-    Class["podman::selinux::policy::${run_flags['security-opt-label-type']}"] -> Systemd::Unit_file["${unique_name}.service"]
+    Class["podman::selinux::policy::${run_flags['security-opt-label-type']}"] ~> Systemd::Unit_file["${unique_name}.service"]
   }
 
   rsyslog::confd{
@@ -60,7 +71,7 @@ define podman::container(
       $user:
         ensure      => $ensure,
         manage_user => $manage_user,
-        group       => $group,
+        group       => $real_group,
         uid         => $uid,
         gid         => $real_gid,
         homedir     => $real_homedir,
@@ -87,6 +98,7 @@ define podman::container(
     podman::image{
       $name:
         user    => $user,
+        group   => $real_group,
         image   => $image,
         uid     => $uid,
         homedir => $real_homedir,
