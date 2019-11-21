@@ -2,10 +2,10 @@
 define podman::container::user(
   Variant[String[1],Integer]
                            $uid,
-  Variant[String[1],Integer]
-                           $gid,
   Stdlib::Compat::Absolute_Path
                            $homedir,
+  Variant[String[1],Integer]
+                           $gid          = 'uid',
   Enum['present','absent'] $ensure       = 'present',
   Stdlib::Filemode         $homedir_mode = '0750',
   String[1]                $group        = $name,

@@ -1,5 +1,5 @@
 [Unit]
-Description=Pod <%= @name %>
+Description=Container <%= @name %>
 
 [Service]
 KillMode=none
@@ -11,8 +11,8 @@ Environment="XDG_RUNTIME_DIR=/run/pods/<%= @uid %>"
 
 SyslogIdentifier=<%= @unique_name %>
 
-ExecStart=/var/lib/containers/users/<%= @user %>/bin/<%= @sanitised_title %>.sh start
-ExecStop=/var/lib/containers/users/<%= @user %>/bin/<%= @sanitised_title %>.sh stop
+ExecStart=/var/lib/containers/users/<%= @user %>/bin/<%= @unique_name %>.sh start
+ExecStop=/var/lib/containers/users/<%= @user %>/bin/<%= @unique_name %>.sh stop
 
 [Install]
 WantedBy=multi-user.target

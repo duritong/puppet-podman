@@ -1,11 +1,11 @@
 #!/bin/bash
 
-function pod_stop() {
-  running_id=$(/usr/bin/podman ps --format '{{.ID}} {{.Names}}' --filter 'name=<%= @sanitised_title %>' --filter 'status=running' | /usr/bin/grep -E ' <%= @sanitised_title %>$' | cut -d' ' -f 1)
+function container_stop() {
+  running_id=$(/usr/bin/podman ps --format '{{.ID}} {{.Names}}' --filter 'name=<%= @sanitised_con_name %>' --filter 'status=running' | /usr/bin/grep -E ' <%= @sanitised_con_name %>$' | cut -d' ' -f 1)
   if [ ! -z $running_id ]; then
-    echo "Stopping Container <%= @sanitised_title %> - ${running_id}"
+    echo "Stopping Container <%= @sanitised_con_name %> - ${running_id}"
     /usr/bin/podman stop -t 20 "${running_id}"
-    running_id=$(/usr/bin/podman ps --format '{{.ID}} {{.Names}}' --filter 'name=<%= @sanitised_title %>' --filter 'status=running' | /usr/bin/grep -E ' <%= @sanitised_title %>$' | cut -d' ' -f 1)
+    running_id=$(/usr/bin/podman ps --format '{{.ID}} {{.Names}}' --filter 'name=<%= @sanitised_con_name %>' --filter 'status=running' | /usr/bin/grep -E ' <%= @sanitised_con_name %>$' | cut -d' ' -f 1)
     if [ ! -z $running_id ]; then
       /usr/bin/podman kill $running_id > /dev/null
       if [ $? -gt 0 ]; then
@@ -16,26 +16,22 @@ function pod_stop() {
   fi
 }
 
-function pod_start() {
-<% if @pull_image_before_start -%>
-  echo "Prepulling image for <%= @sanitised_title %>"
-  /usr/bin/podman pull <%= @image %>
-<% end -%>
-  container_id=$(/usr/bin/podman ps -a --format '{{.ID}} {{.Names}}' --filter 'name=<%= @sanitised_title %>' | /usr/bin/grep -E ' <%= @sanitised_title %>$' | cut -d' ' -f 1)
+function container_start() {
+  container_id=$(/usr/bin/podman ps -a --format '{{.ID}} {{.Names}}' --filter 'name=<%= @sanitised_con_name %>' | /usr/bin/grep -E ' <%= @sanitised_con_name %>$' | cut -d' ' -f 1)
   if [ ! -z $container_id ]; then
-    echo "Container  <%= @sanitised_title %> - ${container_id} still present. Removing..."
+    echo "Container  <%= @sanitised_con_name %> - ${container_id} still present. Removing..."
     /usr/bin/podman rm $container_id > /dev/null
     if [ $? -gt 0 ]; then
       # maybe it's gone
-      container_id=$(/usr/bin/podman ps -a --format '{{.ID}} {{.Names}}' --filter 'name=<%= @sanitised_title %>' | /usr/bin/grep -E ' <%= @sanitised_title %>$' | cut -d' ' -f 1)
+      container_id=$(/usr/bin/podman ps -a --format '{{.ID}} {{.Names}}' --filter 'name=<%= @sanitised_con_name %>' | /usr/bin/grep -E ' <%= @sanitised_con_name %>$' | cut -d' ' -f 1)
       if [ ! -z $container_id ]; then
         echo "Error while removing existing container!"
         exit 120
       fi
     fi
   fi
-  echo "Starting Container <%= @sanitised_title %>"
-  /usr/bin/podman run --name <%= @sanitised_title %> \
+  echo "Starting Container <%= @sanitised_con_name %>"
+  /usr/bin/podman run --name <%= @sanitised_con_name %> \
 <% Array(@publish).each do |p| -%>
     --publish <%= p %> \
 <% end -%>
@@ -43,7 +39,7 @@ function pod_start() {
     --volume <%= "#{host_dir}:#{container_dir}" %> \
 <% end -%>
 <% if @run_flags['user'] -%>
-    --user=<%= @run_flags['user'] %> \
+    --user=<%= @run_flags['user'].gsub(/UID/,"#{@uid}").gsub(/GID/,"#{@real_gid}") %> \
 <% end -%>
 <% if @run_flags['userns'] -%>
     --userns=<%= @run_flags['userns'] %> \
@@ -56,10 +52,10 @@ function pod_start() {
 }
 
 if [ "$1" == 'stop' ]; then
-  pod_stop
+  container_stop
 elif [ "$1" == 'start' ]; then
-  pod_stop
-  pod_start
+  container_stop
+  container_start
 else
   echo "USAGE: $0 (start|stop)"
   exit 128
