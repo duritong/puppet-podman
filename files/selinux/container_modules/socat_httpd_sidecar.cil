@@ -1,0 +1,8 @@
+(block socat_httpd_sidecar
+    (blockinherit container)
+    (allow process http_cache_port_t ( tcp_socket (  name_connect ))) 
+    (allow process unreserved_port_t ( tcp_socket (  name_connect ))) 
+    (allow process httpd_var_run_t ( dir ( search getattr read open add_name remove_name ioctl lock write ))) 
+    (allow process httpd_var_run_t ( sock_file ( getattr read write append open create setattr unlink ))) 
+    (allow httpd_t process ( unix_stream_socket ( connectto ))) 
+)

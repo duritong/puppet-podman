@@ -18,6 +18,8 @@ define podman::container(
     $command        = undef,
   Array[Pattern[/^\d+:\d+$/]]
     $publish        = [],
+  Hash[Integer[1,65535], Hash]
+    $publish_socket = {},
   Array[Variant[Integer,Pattern[/^\d+(:(tcp|udp))?$/]]]
                            $publish_firewall = [],
   Hash[Stdlib::Compat::Absolute_Path,
@@ -81,8 +83,7 @@ define podman::container(
   file{
     "/var/lib/containers/users/${user}/bin/${unique_name}.sh":
       ensure  => $ensure,
-      content => template('podman/user-container.sh.erb'),
-      owner   => $uid,
+      owner   => 'root',
       group   => $real_gid,
       mode    => '0750';
   } ~> systemd::unit_file{
@@ -95,6 +96,21 @@ define podman::container(
   }
 
   if $ensure == 'present' {
+    if empty($publish_socket) {
+      File["/var/lib/containers/users/${user}/bin/${unique_name}.sh"]{
+        content => template('podman/user-container.sh.erb'),
+      }
+    } else {
+      $publish_socket.each |$k,$v| {
+        if $v['security-opt-label-type']{
+          require "podman::selinux::policy::${v['security-opt-label-type']}"
+          Class["podman::selinux::policy::${v['security-opt-label-type']}"] ~> Systemd::Unit_file["${unique_name}.service"]
+        }
+      }
+      File["/var/lib/containers/users/${user}/bin/${unique_name}.sh"]{
+        content => template('podman/user-pod.sh.erb'),
+      }
+    }
     podman::image{
       $name:
         user    => $user,
@@ -103,6 +119,26 @@ define podman::container(
         uid     => $uid,
         homedir => $real_homedir,
     } -> Systemd::Unit_file["${unique_name}.service"]
+    if !empty($publish_socket) and !defined(Podman::Image["${user}-pause"]) {
+      podman::image{
+        "${user}-pause":
+          user    => $user,
+          group   => $real_group,
+          image   => "k8s.gcr.io/pause:3.1",
+          uid     => $uid,
+          homedir => $real_homedir,
+      } -> Systemd::Unit_file["${unique_name}.service"]
+    }
+    if !empty($publish_socket) and !defined(Podman::Image["${user}-socat"]) {
+      podman::image{
+        "${user}-socat":
+          user    => $user,
+          group   => $real_group,
+          image   => "registry.code.immerda.ch/immerda/container-images/socat:7",
+          uid     => $uid,
+          homedir => $real_homedir,
+      } -> Systemd::Unit_file["${unique_name}.service"]
+    }
 
     $publish_firewall.each |$pport| {
       $port_arr = split(String($pport),/:/)

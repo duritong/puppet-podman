@@ -5,26 +5,28 @@ function container_stop() {
   if [ ! -z $running_id ]; then
     echo "Stopping Container <%= @sanitised_con_name %> - ${running_id}"
     /usr/bin/podman stop -t 20 "${running_id}"
-    running_id=$(/usr/bin/podman ps --format '{{.ID}} {{.Names}}' --filter 'name=<%= @sanitised_con_name %>' --filter 'status=running' | /usr/bin/grep -E ' <%= @sanitised_con_name %>$' | cut -d' ' -f 1)
-    if [ ! -z $running_id ]; then
-      /usr/bin/podman kill $running_id > /dev/null
+    running_id2=$(/usr/bin/podman ps --format '{{.ID}} {{.Names}}' --filter 'name=<%= @sanitised_con_name %>' --filter 'status=running' | /usr/bin/grep -E ' <%= @sanitised_con_name %>$' | cut -d' ' -f 1)
+    if [ ! -z "${running_id2}" ]; then
+      running_id="${running_id2}"
+      /usr/bin/podman kill "${running_id}" > /dev/null
       if [ $? -gt 0 ]; then
         echo "Error while killing running container!"
         exit 120
       fi
     fi
+    /usr/bin/podman rm "${running_id}"
   fi
 }
 
 function container_start() {
   container_id=$(/usr/bin/podman ps -a --format '{{.ID}} {{.Names}}' --filter 'name=<%= @sanitised_con_name %>' | /usr/bin/grep -E ' <%= @sanitised_con_name %>$' | cut -d' ' -f 1)
-  if [ ! -z $container_id ]; then
+  if [[ ! -z "${container_id}" ]]; then
     echo "Container  <%= @sanitised_con_name %> - ${container_id} still present. Removing..."
     /usr/bin/podman rm $container_id > /dev/null
     if [ $? -gt 0 ]; then
       # maybe it's gone
       container_id=$(/usr/bin/podman ps -a --format '{{.ID}} {{.Names}}' --filter 'name=<%= @sanitised_con_name %>' | /usr/bin/grep -E ' <%= @sanitised_con_name %>$' | cut -d' ' -f 1)
-      if [ ! -z $container_id ]; then
+      if [[ ! -z "${container_id}" ]]; then
         echo "Error while removing existing container!"
         exit 120
       fi

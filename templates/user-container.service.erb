@@ -5,7 +5,7 @@ Description=Container <%= @name %>
 KillMode=none
 
 User=<%= @user %>
-Group=<%= @group %>
+Group=<%= @real_group %>
 
 Environment="XDG_RUNTIME_DIR=/run/pods/<%= @uid %>"
 
@@ -13,6 +13,32 @@ SyslogIdentifier=<%= @unique_name %>
 
 ExecStart=/var/lib/containers/users/<%= @user %>/bin/<%= @unique_name %>.sh start
 ExecStop=/var/lib/containers/users/<%= @user %>/bin/<%= @unique_name %>.sh stop
+
+# security settings
+PrivateTmp=true
+ProtectHome=true
+
+ProtectSystem=full
+# to be migrated once in EL7
+# ProtectSystem=strict
+
+# not yet available
+# to be migrated once in EL7
+#PrivateUsers=true
+#ProtectKernelTunables=true
+#ProtectKernelModules=true
+#ProtectControlGroups=yes
+
+ReadOnlyDirectories=/
+InaccessibleDirectories=/home
+ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/run/
+ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/storage/
+ReadWriteDirectories=/run/pods/<%= @uid %>/
+<% Hash(@volumes).each do |host_dir,container_dir|
+  if container_dir =~ /.*:rw(,Z)?$/ -%>
+ReadWriteDirectories=<%= host_dir %>
+<% end
+end -%>
 
 [Install]
 WantedBy=multi-user.target

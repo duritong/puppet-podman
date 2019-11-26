@@ -53,8 +53,12 @@ define podman::container::user(
         owner   => $name,
         group   => $name,
         mode    => '0751';
-      [ "/var/lib/containers/users/${name}/bin",
-      "${homedir}/.local",
+      "/var/lib/containers/users/${name}/bin":
+        ensure  => directory,
+        owner   => 'root',
+        group   => $name,
+        mode    => '0640';
+      [ "${homedir}/.local",
       "${homedir}/.local/share",
       "${homedir}/.local/share/containers",
       "${homedir}/.config",
