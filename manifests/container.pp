@@ -67,6 +67,13 @@ define podman::container(
       compress     => true,
       copytruncate => true,
       dateext      => true,
+      create       => true,
+      create_mode  => '0640',
+      create_owner => 'root',
+      create_group => $real_group.
+      su           => true,
+      su_user      => 'root',
+      su_group     => $real_group.
   }
   if !defined(Podman::Container::User[$user]) {
     podman::container::user{
