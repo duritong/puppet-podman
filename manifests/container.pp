@@ -70,10 +70,10 @@ define podman::container(
       create       => true,
       create_mode  => '0640',
       create_owner => 'root',
-      create_group => $real_group.
+      create_group => $real_group,
       su           => true,
       su_user      => 'root',
-      su_group     => $real_group.
+      su_group     => $real_group,
   }
   if !defined(Podman::Container::User[$user]) {
     podman::container::user{
