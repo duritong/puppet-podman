@@ -58,4 +58,12 @@ class podman(
         * => $con,
     }
   }
+
+  rkhunter::local_conf{
+    "podman":
+      content => @(EOF)
+  ALLOWDEVFILE="/dev/shm/libpod_lock"
+  ALLOWDEVFILE="/dev/shm/libpod_rootless_lock_*"
+  | EOF
+   }
 }
