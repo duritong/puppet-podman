@@ -20,6 +20,8 @@ define podman::container(
     $publish        = [],
   Hash[Integer[1,65535], Hash]
     $publish_socket = {},
+  Array[Pattern[/^[a-zA-Z0-9_]+=.+$/]]
+    $envs           = [],
   Array[Variant[Integer,Pattern[/^\d+(:(tcp|udp))?$/]]]
                            $publish_firewall = [],
   Hash[Stdlib::Compat::Absolute_Path,

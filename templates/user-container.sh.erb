@@ -37,6 +37,9 @@ function container_start() {
 <% Array(@publish).each do |p| -%>
     --publish <%= p %> \
 <% end -%>
+<% Array(@envs).each do |e| -%>
+    --env <%= e %> \
+<% end -%>
 <% Hash(@volumes).each do |host_dir,container_dir| -%>
     --volume <%= "#{host_dir}:#{container_dir}" %> \
 <% end -%>
