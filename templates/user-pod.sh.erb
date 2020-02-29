@@ -57,6 +57,9 @@ function pod_start() {
 <% Hash(@volumes).each do |host_dir,container_dir| -%>
     --volume <%= "#{host_dir}:#{container_dir}" %> \
 <% end -%>
+<% Array(@envs).each do |e| -%>
+    --env <%= e %> \
+<% end -%>
 <% if @run_flags['user'] -%>
     --user=<%= @run_flags['user'].gsub(/UID/,"#{@uid}").gsub(/GID/,"#{@real_gid}") %> \
 <% end -%>
