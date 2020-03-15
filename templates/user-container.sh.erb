@@ -40,7 +40,7 @@ function container_start() {
 <% Array(@envs).each do |e| -%>
     --env <%= e %> \
 <% end -%>
-<% Hash(@volumes).each do |host_dir,container_dir| -%>
+<% @real_volumes.each do |host_dir,container_dir| -%>
     --volume <%= "#{host_dir}:#{container_dir}" %> \
 <% end -%>
 <% if @run_flags['user'] -%>

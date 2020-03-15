@@ -1,8 +1,11 @@
 [Unit]
 Description=Container <%= @name %>
+After=network.target
 
 [Service]
+Type=simple
 KillMode=none
+Restart=on-failure
 
 User=<%= @user %>
 Group=<%= @real_group %>
@@ -34,7 +37,7 @@ InaccessibleDirectories=/home
 ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/run/
 ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/storage/
 ReadWriteDirectories=/run/pods/<%= @uid %>/
-<% Hash(@volumes).each do |host_dir,container_dir|
+<% @real_volumes.each do |host_dir,container_dir|
   if container_dir =~ /.*:rw(,Z)?$/ -%>
 ReadWriteDirectories=<%= host_dir %>
 <% end

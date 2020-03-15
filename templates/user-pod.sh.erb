@@ -54,7 +54,7 @@ function pod_start() {
 <% Array(@publish).each do |p| -%>
     --publish <%= p %> \
 <% end -%>
-<% Hash(@volumes).each do |host_dir,container_dir| -%>
+<% @real_volumes.each do |host_dir,container_dir| -%>
     --volume <%= "#{host_dir}:#{container_dir}" %> \
 <% end -%>
 <% Array(@envs).each do |e| -%>

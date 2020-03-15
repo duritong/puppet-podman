@@ -9,30 +9,36 @@ define podman::container(
   Variant[String[1],Integer]
     $gid,
   Optional[String[1]]
-    $group          = undef,
+    $group            = undef,
   Enum['present','absent']
-    $ensure         = 'present',
+    $ensure           = 'present',
+  Enum['pod','container']
+    $deployment_mode  = 'container',
   String
-    $container_name = $name,
+    $container_name   = $name,
   Optional[String]
-    $command        = undef,
-  Array[Pattern[/^\d+:\d+$/]]
-    $publish        = [],
+    $command          = undef,
+  Optional[String]
+    $pod_file         = undef,
+  Array[Pattern[/^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\.([0-9]|[1-9][0-9]|1[0-9]{2}[0-4][0-9]|25[0-5])){3}:)?\d+:\d+(:(tcp|udp))?$/]]
+    $publish          = [],
   Hash[Integer[1,65535], Hash]
-    $publish_socket = {},
+    $publish_socket   = {},
   Array[Pattern[/^[a-zA-Z0-9_]+=.+$/]]
-    $envs           = [],
+    $envs             = [],
   Array[Variant[Integer,Pattern[/^\d+(:(tcp|udp))?$/]]]
-                           $publish_firewall = [],
-  Hash[Stdlib::Compat::Absolute_Path,
-    Stdlib::Compat::Absolute_Path]
-                           $volumes     = {},
-  Hash                     $run_flags   = {},
+    $publish_firewall = [],
+  Variant[Hash[Stdlib::Compat::Absolute_Path,
+    Stdlib::Compat::Absolute_Path],Array[Pattern[/^\/.*:\/[^:]*(:(ro|rw|Z)(,Z)?)?/]]]
+    $volumes          = {},
+  Hash
+    $run_flags        = {},
   Optional[Stdlib::Compat::Absolute_Path]
-                           $homedir     = undef,
-  Boolean                  $manage_user = true,
+    $homedir          = undef,
+  Boolean
+    $manage_user      = true,
   Stdlib::Compat::Absolute_Path
-                           $logpath     = '/var/log/containers',
+    $logpath          = '/var/log/containers',
 ){
   if $homedir {
     $real_homedir = $homedir
@@ -53,9 +59,9 @@ define podman::container(
   $sanitised_con_name = regsubst($container_name, '[^0-9A-Za-z._]', '-', 'G')
   $unique_name = regsubst("con-${user}-${container_name}", '[^0-9A-Za-z._]', '-', 'G')
 
-  if $run_flags['security-opt-label-type'] {
-    require "podman::selinux::policy::${run_flags['security-opt-label-type']}"
-    Class["podman::selinux::policy::${run_flags['security-opt-label-type']}"] ~> Systemd::Unit_file["${unique_name}.service"]
+  $real_volumes = $volumes ? {
+    Array   => $volumes.map |$s| { split($s,':') },
+    default => $volumes,
   }
 
   rsyslog::confd{
@@ -86,30 +92,63 @@ define podman::container(
         uid         => $uid,
         gid         => $real_gid,
         homedir     => $real_homedir,
-        before      => File["/var/lib/containers/users/${user}/bin/${unique_name}.sh"],
     }
   }
-  file{
-    "/var/lib/containers/users/${user}/bin/${unique_name}.sh":
-      ensure  => $ensure,
-      owner   => 'root',
-      group   => $real_gid,
-      mode    => '0750';
-  } ~> systemd::unit_file{
-    "${unique_name}.service":
-      ensure  => $ensure,
-      content => template('podman/user-container.service.erb'),
-      enable  => true,
-      active  => true,
-      require => Package['podman'],
+
+  if $deployment_mode == 'pod' {
+    if $pod_file {
+      $pod_yaml_path = "/var/lib/containers/users/${user}/${sanitised_con_name}.yaml"
+      file{
+        $pod_yaml_path:
+          owner  => 'root',
+          group  => $real_gid,
+          mode   => '0640',
+          notify => Systemd::Unit_file["${unique_name}.service"];
+      }
+      if $pod_file =~ /puppet:\/\// {
+        File[$pod_yaml_path]{
+          source => $pod_file,
+        }
+      } else {
+        File[$pod_yaml_path]{
+          content => template($pod_file),
+        }
+      }
+    }
+
+    $systemd_unit_file = 'podman/user-pod.service.erb'
+  } else {
+    file{
+      "/var/lib/containers/users/${user}/bin/${unique_name}.sh":
+        ensure  => $ensure,
+        owner   => 'root',
+        group   => $real_gid,
+        mode    => '0750',
+        notify  => Systemd::Unit_file["${unique_name}.service"],
+        require => Podman::Container::User[$user];
+    }
+    $systemd_unit_file = 'podman/user-container.service.erb'
+  }
+  systemd::unit_file{
+      "${unique_name}.service":
+        ensure  => $ensure,
+        content => template($systemd_unit_file),
+        enable  => true,
+        active  => true,
+        require => Package['podman'],
   }
 
   if $ensure == 'present' {
-    if empty($publish_socket) {
+    if $run_flags['security-opt-label-type'] {
+      require "podman::selinux::policy::${run_flags['security-opt-label-type']}"
+      Class["podman::selinux::policy::${run_flags['security-opt-label-type']}"] ~> Systemd::Unit_file["${unique_name}.service"]
+    }
+
+    if empty($publish_socket) and $deployment_mode == 'container' {
       File["/var/lib/containers/users/${user}/bin/${unique_name}.sh"]{
         content => template('podman/user-container.sh.erb'),
       }
-    } else {
+    } elsif $deployment_mode == 'container' {
       $publish_socket.each |$k,$v| {
         if $v['security-opt-label-type']{
           require "podman::selinux::policy::${v['security-opt-label-type']}"
@@ -120,24 +159,27 @@ define podman::container(
         content => template('podman/user-pod.sh.erb'),
       }
     }
-    podman::image{
-      $name:
-        user    => $user,
-        group   => $real_group,
-        image   => $image,
-        uid     => $uid,
-        homedir => $real_homedir,
-    } -> Systemd::Unit_file["${unique_name}.service"]
-    if !empty($publish_socket) and !defined(Podman::Image["${user}-pause"]) {
+    if $deployment_mode == 'container' {
       podman::image{
-        "${user}-pause":
+        $name:
           user    => $user,
           group   => $real_group,
-          image   => "k8s.gcr.io/pause:3.1",
+          image   => $image,
           uid     => $uid,
           homedir => $real_homedir,
       } -> Systemd::Unit_file["${unique_name}.service"]
+      if !empty($publish_socket) and !defined(Podman::Image["${user}-pause"]) {
+        podman::image{
+          "${user}-pause":
+            user    => $user,
+            group   => $real_group,
+            image   => "k8s.gcr.io/pause:3.1",
+            uid     => $uid,
+            homedir => $real_homedir,
+        } -> Systemd::Unit_file["${unique_name}.service"]
+      }
     }
+
     if !empty($publish_socket) and !defined(Podman::Image["${user}-socat"]) {
       podman::image{
         "${user}-socat":
@@ -152,14 +194,14 @@ define podman::container(
     $publish_firewall.each |$pport| {
       $port_arr = split(String($pport),/:/)
       $proto = pick($port_arr[1],'tcp')
-      if $publish.any |$p| { $p =~ Regexp("^${port_arr[0]}:") } {
+      if $publish.any |$p| { $p =~ Regexp("^${port_arr[0]}:([0-9]+)?(:${proto})?$") } {
         shorewall::rule {
           "${unique_name}-${pport}":
             destination     => '$FW',
             source          => 'net',
             order           => 240,
             proto           => $proto,
-            destinationport => $pport,
+            destinationport => $port_arr[0],
             action          => 'ACCEPT',
             require         => Systemd::Unit_file["${unique_name}.service"],
         }
