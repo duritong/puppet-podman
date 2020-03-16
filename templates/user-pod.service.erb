@@ -4,11 +4,9 @@ After=network.target
 
 [Service]
 Type=simple
-TimeoutStartSec=15
+KillMode=none
 RemainAfterExit=yes
 Restart=on-failure
-RestartSec=30
-
 
 User=<%= @user %>
 Group=<%= @real_group %>
@@ -25,8 +23,6 @@ ExecStop=-/usr/bin/podman pod rm -f <%= @sanitised_con_name %>
 ExecReload=-/usr/bin/podman pod stop <%= @sanitised_con_name %>
 ExecReload=-/usr/bin/podman pod rm -f <%= @sanitised_con_name %>
 
-KillMode=none
-PIDFile=/%t/%n-pid
 
 [Install]
 WantedBy=multi-user.target
