@@ -37,6 +37,11 @@ define podman::container::user(
   }
   if $ensure == 'present' {
     file{
+      "${homedir}/.bash_profile":
+        content => "[[ -r ~/.bashrc ]] && . ~/.bashrc\n"
+        owner   => root,
+        group   => $name,
+        mode    => '0640';
       "${homedir}/.bashrc":
         content => "export XDG_RUNTIME_DIR=/run/pods/${uid}\n",
         owner   => root,
