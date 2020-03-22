@@ -8,7 +8,9 @@ class podman(
   $size_container_disk = '5G',
   $containers_lv       = 'containers_lv',
   $containers          = {},
+  $use_rkhunter        = true,
 ) {
+
   sysctl::value{
     'user.max_user_namespaces':
       value => '28633'
@@ -60,11 +62,13 @@ class podman(
     }
   }
 
-  rkhunter::local_conf{
-    'podman':
-      content => @(EOF)
+  if $use_rkhunter {
+    rkhunter::local_conf{
+      'podman':
+        content => @(EOF)
   ALLOWDEVFILE="/dev/shm/libpod_lock"
   ALLOWDEVFILE="/dev/shm/libpod_rootless_lock_*"
   | EOF
+    }
   }
 }
