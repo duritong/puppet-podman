@@ -20,8 +20,8 @@ class podman(
   # go into that dir, which can have limited length
   # https://github.com/containers/libpod/issues/4057
   systemd::tmpfile{
-    "podman_tmp.conf":
-      content => "d /run/pods 711 root root",
+    'podman_tmp.conf':
+      content => 'd /run/pods 711 root root',
       require => Package['podman'];
   }
 
@@ -48,7 +48,7 @@ class podman(
       owner   => 'root',
       group   => 'root',
       mode    => '0711',
-      #    seltype => 'data_home_t',
+      #seltype => 'data_home_t',
       before  => Package['podman'];
   }
 
@@ -60,10 +60,10 @@ class podman(
   }
 
   rkhunter::local_conf{
-    "podman":
+    'podman':
       content => @(EOF)
   ALLOWDEVFILE="/dev/shm/libpod_lock"
   ALLOWDEVFILE="/dev/shm/libpod_rootless_lock_*"
   | EOF
-   }
+  }
 }

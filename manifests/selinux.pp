@@ -1,7 +1,7 @@
 # manages selinux related things to podman
 class podman::selinux {
   file{
-    "/var/lib/containers/selinux":
+    '/var/lib/containers/selinux':
       ensure  => directory,
       owner   => root,
       group   => 0,
@@ -9,9 +9,9 @@ class podman::selinux {
       recurse => true,
       purge   => true,
       force   => true;
-    "/var/lib/containers/selinux/templates":
+    '/var/lib/containers/selinux/templates':
       ensure  => directory,
-      source  => "puppet:///modules/podman/selinux/templates",
+      source  => 'puppet:///modules/podman/selinux/templates',
       owner   => root,
       group   => 0,
       mode    => '0644',

@@ -28,6 +28,6 @@ define podman::image(
     group       => $real_group,
     cwd         => $homedir,
     environment => ["HOME=${homedir}",
-                     "XDG_RUNTIME_DIR=/run/pods/${uid}"],
+                    "XDG_RUNTIME_DIR=/run/pods/${uid}"],
   }
 }
