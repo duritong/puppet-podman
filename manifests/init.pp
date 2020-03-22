@@ -6,6 +6,7 @@
 #   include podman
 class podman(
   $size_container_disk = '5G',
+  $containers_lv       = 'containers_lv',
   $containers          = {},
 ) {
   sysctl::value{
@@ -27,7 +28,7 @@ class podman(
 
   if $size_container_disk {
     disks::lv_mount{
-      'containers_lv':
+      $containers_lv:
         folder  => '/var/lib/containers',
         owner   => 'root',
         group   => 'root',
