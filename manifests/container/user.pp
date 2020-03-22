@@ -38,7 +38,7 @@ define podman::container::user(
   if $ensure == 'present' {
     file{
       "${homedir}/.bash_profile":
-        content => "[[ -r ~/.bashrc ]] && . ~/.bashrc\n"
+        content => "[[ -r ~/.bashrc ]] && . ~/.bashrc\n",
         owner   => 'root',
         group   => $name,
         mode    => '0640';
