@@ -29,6 +29,5 @@ define podman::image(
     cwd         => $homedir,
     environment => ["HOME=${homedir}",
                     "XDG_RUNTIME_DIR=/run/pods/${uid}"],
-    path        => ['/bin', '/usr/bin', '/usr/local/bin'],
   }
 }

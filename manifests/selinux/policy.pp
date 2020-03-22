@@ -17,10 +17,8 @@ define podman::selinux::policy(
     command     => "semodule -i /var/lib/containers/selinux/${name}.cil ${template_files_str}",
     refreshonly => true,
     subscribe   => File['/var/lib/containers/selinux/templates'],
-    path        => ['/bin', '/usr/bin', '/usr/local/bin'],
   } -> exec{"ensure_selinux_container_policy_${name}": # mainly for future runs, so we don't miss it if it's not working
     command => "semodule -i /var/lib/containers/selinux/${name}.cil ${template_files_str}",
     creates => "/etc/selinux/targeted/active/modules/400/${name}",
-    path    => ['/bin', '/usr/bin', '/usr/local/bin'],
   }
 }
