@@ -97,6 +97,7 @@ define podman::container::user(
                         Exec[systemd-tmpfiles] ],
         environment => ["HOME=${homedir}",
                         "XDG_RUNTIME_DIR=/run/pods/${uid}"],
+        path        => ['/bin', '/usr/bin', '/usr/local/bin'],
     }
   } else {
     Systemd::Tmpfile["podman_tmp_${name}.conf"]{
