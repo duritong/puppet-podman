@@ -5,7 +5,7 @@ define podman::selinux::policy(
   include ::podman::selinux
 
   $template_files = $templates.map |$x| { "/var/lib/containers/selinux/templates/${x}.cil" }
-  $template_files_str = $template_files.join(" ")
+  $template_files_str = $template_files.join(' ')
 
   file{
     "/var/lib/containers/selinux/${name}.cil":

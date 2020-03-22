@@ -173,7 +173,7 @@ define podman::container(
           "${user}-pause":
             user    => $user,
             group   => $real_group,
-            image   => "k8s.gcr.io/pause:3.1",
+            image   => 'k8s.gcr.io/pause:3.1',
             uid     => $uid,
             homedir => $real_homedir,
         } -> Systemd::Unit_file["${unique_name}.service"]
@@ -185,7 +185,7 @@ define podman::container(
         "${user}-socat":
           user    => $user,
           group   => $real_group,
-          image   => "registry.code.immerda.ch/immerda/container-images/socat:7",
+          image   => 'registry.code.immerda.ch/immerda/container-images/socat:7',
           uid     => $uid,
           homedir => $real_homedir,
       } -> Systemd::Unit_file["${unique_name}.service"]
