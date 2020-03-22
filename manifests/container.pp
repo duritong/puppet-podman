@@ -37,6 +37,8 @@ define podman::container(
     $homedir          = undef,
   Boolean
     $manage_user      = true,
+  Boolean
+    $use_rsyslog      = true,
   Stdlib::Compat::Absolute_Path
     $logpath          = '/var/log/containers',
 ){
@@ -64,24 +66,26 @@ define podman::container(
     default => $volumes,
   }
 
-  rsyslog::confd{
-    $unique_name:
-      ensure  => $ensure,
-      content => template('podman/rsyslog-confd.erb'),
-  } -> logrotate::rule{
-    $unique_name:
-      ensure       => $ensure,
-      path         => "${logpath}/${unique_name}.log",
-      compress     => true,
-      copytruncate => true,
-      dateext      => true,
-      create       => true,
-      create_mode  => '0640',
-      create_owner => 'root',
-      create_group => $real_group,
-      su           => true,
-      su_user      => 'root',
-      su_group     => $real_group,
+  if $use_rsyslog {
+    rsyslog::confd{
+      $unique_name:
+        ensure  => $ensure,
+        content => template('podman/rsyslog-confd.erb'),
+    } -> logrotate::rule{
+      $unique_name:
+        ensure       => $ensure,
+        path         => "${logpath}/${unique_name}.log",
+        compress     => true,
+        copytruncate => true,
+        dateext      => true,
+        create       => true,
+        create_mode  => '0640',
+        create_owner => 'root',
+        create_group => $real_group,
+        su           => true,
+        su_user      => 'root',
+        su_group     => $real_group,
+    }
   }
   if !defined(Podman::Container::User[$user]) {
     podman::container::user{
