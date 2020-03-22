@@ -39,12 +39,12 @@ define podman::container::user(
     file{
       "${homedir}/.bash_profile":
         content => "[[ -r ~/.bashrc ]] && . ~/.bashrc\n"
-        owner   => root,
+        owner   => 'root',
         group   => $name,
         mode    => '0640';
       "${homedir}/.bashrc":
         content => "export XDG_RUNTIME_DIR=/run/pods/${uid}\n",
-        owner   => root,
+        owner   => 'root',
         group   => $name,
         mode    => '0640';
     } -> File["/var/lib/containers/users/${name}"]{
