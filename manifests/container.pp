@@ -41,6 +41,8 @@ define podman::container(
     $use_rsyslog      = true,
   Stdlib::Compat::Absolute_Path
     $logpath          = '/var/log/containers',
+  Hash
+    $configuration    = {},
 ){
   if $homedir {
     $real_homedir = $homedir
