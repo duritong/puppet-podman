@@ -20,7 +20,7 @@ define podman::container(
     $command          = undef,
   Optional[String]
     $pod_file         = undef,
-  Array[Pattern[/^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\.([0-9]|[1-9][0-9]|1[0-9]{2}[0-4][0-9]|25[0-5])){3}:)?\d+:\d+(:(tcp|udp))?$/]]
+  Array[Pattern[/^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\.([0-9]|[1-9][0-9]|1[0-9]{2}[0-4][0-9]|25[0-5])){3}:)?\d+:\d+(\/(tcp|udp))?$/]]
     $publish          = [],
   Hash[Integer[1,65535], Hash]
     $publish_socket   = {},
@@ -198,9 +198,9 @@ define podman::container(
     }
 
     $publish_firewall.each |$pport| {
-      $port_arr = split(String($pport),/:/)
+      $port_arr = split(String($pport),/\//)
       $proto = pick($port_arr[1],'tcp')
-      if $publish.any |$p| { $p =~ Regexp("^${port_arr[0]}:([0-9]+)?(:${proto})?$") } {
+      if $publish.any |$p| { $p =~ Regexp("^${port_arr[0]}:([0-9]+)?(/${proto})?$") } {
         shorewall::rule {
           "${unique_name}-${pport}":
             destination     => '$FW',
