@@ -20,7 +20,7 @@ define podman::container(
     $command          = undef,
   Optional[String]
     $pod_file         = undef,
-  Array[Pattern[/^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\.([0-9]|[1-9][0-9]|1[0-9]{2}[0-4][0-9]|25[0-5])){3}:)?\d+:\d+(\/(tcp|udp))?$/]]
+  Array[Pattern[/\A(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])){3}:)?\d+:\d+(\/(tcp|udp))?\z/]]
     $publish          = [],
   Hash[Integer[1,65535], Hash]
     $publish_socket   = {},
@@ -35,6 +35,8 @@ define podman::container(
     $run_flags        = {},
   Optional[Stdlib::Compat::Absolute_Path]
     $homedir          = undef,
+  Boolean
+    $manageuserhome   = true,
   Boolean
     $manage_user      = true,
   Boolean
@@ -98,6 +100,7 @@ define podman::container(
         uid         => $uid,
         gid         => $real_gid,
         homedir     => $real_homedir,
+        managehome  => $manageuserhome,
     }
   }
 

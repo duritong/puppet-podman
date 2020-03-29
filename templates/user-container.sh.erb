@@ -43,6 +43,9 @@ function container_start() {
 <% @real_volumes.each do |host_dir,container_dir| -%>
     --volume <%= "#{host_dir}:#{container_dir}" %> \
 <% end -%>
+<% if @run_flags['hostname'] -%>
+    --hostname=<%= @run_flags['hostname'] %> \
+<% end -%>
 <% if @run_flags['user'] -%>
     --user=<%= @run_flags['user'].gsub(/UID/,"#{@uid}").gsub(/GID/,"#{@real_gid}") %> \
 <% end -%>
