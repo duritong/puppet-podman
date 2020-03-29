@@ -19,7 +19,7 @@ ExecStop=/var/lib/containers/users/<%= @user %>/bin/<%= @unique_name %>.sh stop
 
 # security settings
 PrivateTmp=true
-<% if @real_homedir =~ /^home\// -%>
+<% if @real_homedir !~ /^\/home\// -%>
 ProtectHome=true
 InaccessibleDirectories=/home
 <% end -%>
