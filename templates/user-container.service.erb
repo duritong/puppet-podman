@@ -19,7 +19,10 @@ ExecStop=/var/lib/containers/users/<%= @user %>/bin/<%= @unique_name %>.sh stop
 
 # security settings
 PrivateTmp=true
+<% unless @real_homedir !~ /^home\// -%>
 ProtectHome=true
+InaccessibleDirectories=/home
+<% end -%>
 
 ProtectSystem=full
 # to be migrated once in EL7
@@ -33,7 +36,7 @@ ProtectSystem=full
 #ProtectControlGroups=yes
 
 ReadOnlyDirectories=/
-InaccessibleDirectories=/home
+ReadWriteDirectories=<%= @real_homedir %>
 ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/run/
 ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/storage/
 ReadWriteDirectories=/run/pods/<%= @uid %>/
