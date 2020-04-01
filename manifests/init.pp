@@ -38,14 +38,13 @@ class podman(
         size    => $size_container_disk,
         fs_type => 'xfs',
         seltype => 'container_var_lib_t',
-        #  before  => Selinux::Fcontext['/var/lib/containers/users(/.*)?'],
+        require => Selinux::Fcontext['/var/lib/containers/users/[^/]+/bin(/.*)?'],
     }
   }
-  #  selinux::fcontext{
-  #    '/var/lib/containers/users(/.*)?':
-  #      setype => 'data_home_t',
-  #  } -> file{
-  file{
+  selinux::fcontext{
+    '/var/lib/containers/users/[^/]+/bin(/.*)?':
+      setype => 'container_runtime_exec_t',
+  } -> file{
     '/var/lib/containers/users':
       ensure  => directory,
       owner   => 'root',

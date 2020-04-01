@@ -62,6 +62,7 @@ define podman::container::user(
         ensure => directory,
         owner  => 'root',
         group  => $name,
+        setype => 'container_runtime_exec_t',
         mode   => '0640';
       [ "${homedir}/.local",
       "${homedir}/.local/share",
