@@ -72,6 +72,9 @@ function pod_start() {
 <% if @run_flags['security-opt-label-type'] -%>
     --security-opt=label=type:<%= @run_flags['security-opt-label-type'] %>.process \
 <% end -%>
+<% if @run_flags.key?('systemd') -%>
+    --systemd=<%= @run_flags['systemd'] %> \
+<% end -%>
     <%= @image %> \
     <% if @command %> <%= @command %><% end %>
 }
