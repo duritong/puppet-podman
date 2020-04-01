@@ -90,7 +90,7 @@ define podman::container::user(
     exec{
       "init-podman-config-${name}":
         command     => 'podman info',
-        creates     => "${homedir}/.config/containers/libpod.conf",
+        creates     => "/var/lib/containers/users/${name}/storage/libpod/bolt_state.db",
         user        => $name,
         group       => $name,
         cwd         => $homedir,
