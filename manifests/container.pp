@@ -133,7 +133,7 @@ define podman::container(
         owner   => 'root',
         group   => $real_gid,
         mode    => '0750',
-        setype  => 'container_runtime_exec_t',
+        seltype => 'container_runtime_exec_t',
         notify  => Systemd::Unit_file["${unique_name}.service"],
         require => Podman::Container::User[$user];
     }

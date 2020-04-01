@@ -59,11 +59,11 @@ define podman::container::user(
         group  => $name,
         mode   => '0751';
       "/var/lib/containers/users/${name}/bin":
-        ensure => directory,
-        owner  => 'root',
-        group  => $name,
-        setype => 'container_runtime_exec_t',
-        mode   => '0640';
+        ensure  => directory,
+        owner   => 'root',
+        group   => $name,
+        seltype => 'container_runtime_exec_t',
+        mode    => '0640';
       [ "${homedir}/.local",
       "${homedir}/.local/share",
       "${homedir}/.local/share/containers",
