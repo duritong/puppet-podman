@@ -10,6 +10,7 @@ class podman::selinux {
       purge   => true,
       force   => true;
     '/var/lib/containers/selinux/templates':
+      ensure  => directory,
       source  => 'puppet:///modules/podman/selinux/templates',
       owner   => root,
       group   => 0,
