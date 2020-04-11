@@ -20,6 +20,10 @@ ExecStartPre=-/usr/local/bin/container-update-pod.sh <%= @image %>
 ExecStart=/var/lib/containers/users/<%= @user %>/bin/<%= @unique_name %>.sh start
 ExecStop=/var/lib/containers/users/<%= @user %>/bin/<%= @unique_name %>.sh stop
 
+<% if @run_flags['systemd_timeout_sec'] -%>
+TimeoutSec=<%= @run_flags['systemd_timeout_sec'] %>
+
+<% end -%>
 # security settings
 PrivateTmp=true
 <% if @real_homedir !~ /^\/home\// -%>
