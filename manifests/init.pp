@@ -28,6 +28,17 @@ class podman(
       require => Package['podman'];
   }
 
+  file{
+    default:
+      owner  => root,
+      group  => root,
+      mode   => '0755';
+    '/usr/local/bin/container-update-image.sh':
+      source => 'puppet:///modules/podman/image_update.sh';
+    '/usr/local/bin/pod-update-image.sh':
+      source => 'puppet:///modules/podman/pod_image_update.sh';
+  }
+
   if $size_container_disk {
     disks::lv_mount{
       $containers_lv:

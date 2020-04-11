@@ -1,30 +1,25 @@
 # pulls an image
-define podman::image(
+define podman::pod_images(
   String[1,32]
     $user,
   Integer
     $uid,
   Stdlib::Compat::Absolute_Path
     $homedir,
-  Pattern[/^[\S]*$/]
-    $image = $title,
+  Stdlib::Unixpath
+    $pod_yaml = $title,
   Optional[String[1,32]]
     $group = undef,
 ) {
-  if $image =~ /:/ {
-    $image_str = $image
-  } else {
-    $image_str = "${image}:latest"
-  }
   if $group {
     $real_group = $group
   } else {
     $real_group = $user
   }
   # we are using the actual command in unless so it's run always
-  Podman::Container::User<| title == $user |> -> exec{"podman_image_${name}":
-    command     => "echo 'Update of ${image_str} complete'",
-    onlyif      => "/usr/local/bin/container-update-image.sh ${image_str}",
+  Podman::Container::User<| title == $user |> -> exec{"podman_pod_${name}":
+    command     => "echo 'Update of pod ${pod_yaml} complete'",
+    onlyif      => "/usr/local/bin/pod-update-image.sh ${pod_yaml}",
     timeout     => 3600,
     user        => $user,
     returns     => ['0', '2'],
