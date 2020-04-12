@@ -35,7 +35,7 @@ define podman::container::user(
     "podman_tmp_${name}.conf":
       content => "d /run/pods/${uid} 700 ${name} ${name}";
   }
-  $image_lifecycle_cron: = "/etc/cron.daily/podman-${name}-image-lifecycle.sh"
+  $image_lifecycle_cron = "/etc/cron.daily/podman-${name}-image-lifecycle.sh"
   concat{
     $image_lifecycle_cron:
       ensure  => $ensure,
