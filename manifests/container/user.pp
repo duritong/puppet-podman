@@ -38,17 +38,17 @@ define podman::container::user(
   $image_lifecycle_cron = "/etc/cron.daily/podman-${name}-image-lifecycle.sh"
   concat{
     $image_lifecycle_cron:
-      ensure  => $ensure,
-      owner   => root,
-      group   => 0,
-      mode    => '0700',
+      ensure => $ensure,
+      owner  => root,
+      group  => 0,
+      mode   => '0700',
   }
   if $ensure == 'present' {
     User::Managed[$name] -> Concat[$image_lifecycle_cron]
     concat::fragment{
       "image-lifecycle-cron-${name}-header":
         target  => $image_lifecycle_cron,
-        content => "#!/bin/bash",
+        content => '#!/bin/bash',
         order   => '00';
       "image-lifecycle-cron-${name}-finalize":
         target  => $image_lifecycle_cron, # yes is workaround for https://github.com/containers/libpod/issues/4844
@@ -68,10 +68,10 @@ define podman::container::user(
         group   => $name,
         mode    => '0640';
     } -> File["/var/lib/containers/users/${name}"]{
-      ensure  => directory,
-      owner   => $name,
-      group   => $name,
-      mode    => '0751',
+      ensure => directory,
+      owner  => $name,
+      group  => $name,
+      mode   => '0751',
     } -> file{
       "/var/lib/containers/users/${name}/storage":
         ensure => directory,
