@@ -7,6 +7,11 @@
 #
 CONTAINER_IMAGE=$1
 
+if [ -z "${CONTAINER_IMAGE}" ];then
+  echo "Error no image passed"
+  exit 1
+fi
+
 # we default the label to latest
 if [[ ! "${CONTAINER_IMAGE}" =~ : ]]; then
   CONTAINER_IMAGE="${CONTAINER_IMAGE}:latest"
