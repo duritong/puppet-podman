@@ -23,8 +23,8 @@ define podman::image(
   }
   # we are using the actual command in unless so it's run always
   Podman::Container::User<| title == $user |> -> exec{"podman_image_${name}":
-    command     => "echo 'Update of ${image_str} complete'",
-    onlyif      => "/usr/local/bin/container-update-image.sh ${image_str}",
+    command     => "/usr/local/bin/container-update-image.sh ${image_str}",
+    unless      => "podman images -q ${image_str} | grep .",
     timeout     => 3600,
     user        => $user,
     returns     => ['0', '2'],
