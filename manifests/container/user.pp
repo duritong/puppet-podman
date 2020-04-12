@@ -35,7 +35,27 @@ define podman::container::user(
     "podman_tmp_${name}.conf":
       content => "d /run/pods/${uid} 700 ${name} ${name}";
   }
+  $image_lifecycle_cron: = "/etc/cron.daily/podman-${name}-image-lifecycle.sh"
+  concat{
+    $image_lifecycle_cron:
+      ensure  => $ensure,
+      owner   => root,
+      group   => 0,
+      mode    => '0700',
+  }
   if $ensure == 'present' {
+    User::Managed[$name] -> Concat[$image_lifecycle_cron]
+    concat::fragment{
+      "image-lifecycle-cron-${name}-header":
+        target  => $image_lifecycle_cron,
+        content => "#!/bin/bash",
+        order   => '00';
+      "image-lifecycle-cron-${name}-finalize":
+        target  => $image_lifecycle_cron, # yes is workaround for https://github.com/containers/libpod/issues/4844
+        content => "su - ${name} -s /bin/bash -c \"yes y | podman system prune -a\" > /dev/null",
+        order   => '99';
+    }
+
     file{
       "${homedir}/.bash_profile":
         content => "[[ -r ~/.bashrc ]] && . ~/.bashrc\n",
@@ -100,6 +120,7 @@ define podman::container::user(
                         "XDG_RUNTIME_DIR=/run/pods/${uid}"],
     }
   } else {
+    Concat[$image_lifecycle_cron] -> User::Managed[$name]
     Systemd::Tmpfile["podman_tmp_${name}.conf"]{
       ensure => absent,
     }

@@ -177,7 +177,7 @@ define podman::container(
           image   => $image,
           uid     => $uid,
           homedir => $real_homedir,
-      } ~> Systemd::Unit_file["${unique_name}.service"]
+      } -> Systemd::Unit_file["${unique_name}.service"]
     } else {
       podman::pod_images{
         $name:
@@ -187,7 +187,7 @@ define podman::container(
           uid      => $uid,
           homedir  => $real_homedir,
 
-      } ~> Systemd::Unit_file["${unique_name}.service"]
+      } -> Systemd::Unit_file["${unique_name}.service"]
     }
     if $deployment_mode == 'pod' or (!empty($publish_socket) and !defined(Podman::Image["${user}-pause"])) {
       # make sure we have also the pause image fetched
@@ -198,7 +198,7 @@ define podman::container(
           image   => 'k8s.gcr.io/pause:3.1',
           uid     => $uid,
           homedir => $real_homedir,
-      } ~> Systemd::Unit_file["${unique_name}.service"]
+      } -> Systemd::Unit_file["${unique_name}.service"]
     }
 
     if !empty($publish_socket) and !defined(Podman::Image["${user}-socat"]) {
@@ -209,7 +209,7 @@ define podman::container(
           image   => 'registry.code.immerda.ch/immerda/container-images/socat:7',
           uid     => $uid,
           homedir => $real_homedir,
-      } ~> Systemd::Unit_file["${unique_name}.service"]
+      } -> Systemd::Unit_file["${unique_name}.service"]
     }
 
     $publish_firewall.each |$pport| {
@@ -227,6 +227,10 @@ define podman::container(
             require         => Systemd::Unit_file["${unique_name}.service"],
         }
       }
+    }
+    concat::fragment{
+      "${name}-image-lifecycle":
+        content => template('podman/user-image-lifecycle.erb');
     }
   }
 }

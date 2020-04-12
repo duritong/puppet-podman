@@ -1,0 +1,22 @@
+# lifecycle of images for container <%= @name %>
+
+<% if @deployment_mode == 'pod' -%>
+output=$(su - <%= @user %> -s /bin/bash -c "/usr/local/bin/pod-update-image.sh <%= @image %>")
+<% else -%>
+output=$(su - <%= @user %> -s /bin/bash -c "/usr/local/bin/container-update-image.sh <%= @pod_yaml_path %>")
+<% end -%>
+ret=$?
+
+if [ $ret -eq 0 ]; then
+  systemctl restart <%= @unique_name %>
+
+  if [ $? -gt 0 ]; then
+    echo "Error while restarting service <%= @unique_name %> for container <%= @name %> - Aborting..."
+    exit 1
+  fi
+elif [ $ret -ne 2 ]; then
+  echo "An error happended while updating images for <%= @name %> - Check output:"
+  echo -e "${output}"
+  exit $ret
+fi
+
