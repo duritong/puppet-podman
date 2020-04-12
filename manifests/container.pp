@@ -113,6 +113,7 @@ define podman::container(
           group  => $real_gid,
           mode   => '0640',
           notify => Systemd::Unit_file["${unique_name}.service"];
+          before => Podman::Pod_images[$name],
       }
       if $pod_file =~ /puppet:\/\// {
         File[$pod_yaml_path]{
