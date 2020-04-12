@@ -231,6 +231,7 @@ define podman::container(
     }
     concat::fragment{
       "${name}-image-lifecycle":
+        target  => "/etc/cron.daily/podman-${name}-image-lifecycle.sh",
         content => template('podman/user-image-lifecycle.erb');
     }
   }
