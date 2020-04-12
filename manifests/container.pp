@@ -61,7 +61,7 @@ define podman::container(
   } else {
     $real_group = $user
   }
-  include ::podman
+  include podman
   $sanitised_con_name = regsubst($container_name, '[^0-9A-Za-z._]', '-', 'G')
   $unique_name = regsubst("con-${user}-${container_name}", '[^0-9A-Za-z._]', '-', 'G')
 
