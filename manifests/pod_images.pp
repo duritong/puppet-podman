@@ -19,7 +19,7 @@ define podman::pod_images(
   # we are using the actual command in unless so it's run always
   Podman::Container::User<| title == $user |> -> exec{"podman_pod_${name}":
     command     => "/usr/local/bin/pod-update-image.sh ${pod_yaml}",
-    onlyif      => "bash -xe -c \"grep ' image: ' ${pod_yaml} | sed 's/.* image:\s*//' | while read line; do podman images -q \"\${line}\" | grep .; done\"",
+    onlyif      => "bash -xe -c \"grep ' image: ' ${pod_yaml} | sed 's/.* image:\s*//' | while read line; do podman images -q \"\\\${line}\" | grep .; done\"",
     timeout     => 3600,
     user        => $user,
     returns     => ['0', '2'],
