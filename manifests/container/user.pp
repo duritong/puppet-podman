@@ -48,11 +48,11 @@ define podman::container::user(
     concat::fragment{
       "image-lifecycle-cron-${name}-header":
         target  => $image_lifecycle_cron,
-        content => '#!/bin/bash',
+        content => "#!/bin/bash\n",
         order   => '00';
       "image-lifecycle-cron-${name}-finalize":
         target  => $image_lifecycle_cron, # yes is workaround for https://github.com/containers/libpod/issues/4844
-        content => "su - ${name} -s /bin/bash -c \"yes y | podman system prune -a\" > /dev/null",
+        content => "su - ${name} -s /bin/bash -c \"yes y | podman system prune -a\" > /dev/null\n",
         order   => '99';
     }
 
