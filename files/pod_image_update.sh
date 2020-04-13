@@ -8,7 +8,7 @@
 
 if [ -f "$1" ]; then
   ret=2
-  for image in "$(grep ' image: ' "$1"  | sed 's/.*image:\s*//')"; do
+  while read -r image; do
     /usr/local/bin/container-update-image.sh "$image"
     cr="$?"
     if [ "$cr" -eq 0 ]; then
@@ -17,7 +17,7 @@ if [ -f "$1" ]; then
       echo "Something went wrong while fetching ${image} - please check previous output"
       exit "$cr"
     fi
-  done
+  done < <(grep ' image: ' "$1"  | sed 's/.*image:\s*//')
   exit "$ret"
 else
   echo "No such file ${1}!"
