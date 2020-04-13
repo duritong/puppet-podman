@@ -17,9 +17,13 @@ define podman::pod_images(
     $real_group = $user
   }
   # we are using the actual command in unless so it's run always
+  $onlyif_cmd_prefix = 'bash -xe -c \"grep \' image: \''
+  # lint:ignore:single_quote_string_with_variables
+  $onlyif_cmd_suffix = '| sed \'s/.* image:\s*//\' | while read -r line; do podman images -q "\\${line}" | grep .; done"'
+  # lint:endignore
   Podman::Container::User<| title == $user |> -> exec{"podman_pod_${name}":
     command     => "/usr/local/bin/pod-update-image.sh ${pod_yaml}",
-    onlyif      => "bash -xe -c \"grep ' image: ' ${pod_yaml} | sed 's/.* image:\s*//' | while read line; do podman images -q \"\\\${line}\" | grep .; done\"",
+    onlyif      => "${onlyif_cmd_prefix} ${pod_yaml} ${onlyif_cmd_suffix}",
     timeout     => 3600,
     user        => $user,
     returns     => ['0', '2'],
