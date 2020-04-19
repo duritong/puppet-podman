@@ -18,8 +18,7 @@ if [[ ! "${CONTAINER_IMAGE}" =~ : ]]; then
 fi
 
 BEFORE="$(podman inspect --type image --format='{{.Id}}' "${CONTAINER_IMAGE}" 2>/dev/null)"
-podman pull -q "${CONTAINER_IMAGE}"
-AFTER="$(podman inspect --type image --format='{{.Id}}' "${CONTAINER_IMAGE}" 2>/dev/null)"
+AFTER="$(podman pull -q "${CONTAINER_IMAGE}")"
 
 if [ -z "$AFTER" ]; then
   echo "Container image ${CONTAINER_IMAGE} failed to pull!"
