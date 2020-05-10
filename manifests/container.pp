@@ -192,14 +192,16 @@ define podman::container(
     }
     if $deployment_mode == 'pod' or (!empty($publish_socket) and !defined(Podman::Image["${user}-pause"])) {
       # make sure we have also the pause image fetched
-      podman::image{
-        "${user}-pause":
-          user    => $user,
-          group   => $real_group,
-          image   => 'k8s.gcr.io/pause:3.1',
-          uid     => $uid,
-          homedir => $real_homedir,
-      } -> Systemd::Unit_file["${unique_name}.service"]
+      if !defined(Podman::Image["${user}-pause"]) {
+        podman::image{
+          "${user}-pause":
+            user    => $user,
+            group   => $real_group,
+            image   => 'k8s.gcr.io/pause:3.1',
+            uid     => $uid,
+            homedir => $real_homedir,
+        } -> Systemd::Unit_file["${unique_name}.service"]
+      }
     }
 
     if !empty($publish_socket) and !defined(Podman::Image["${user}-socat"]) {
