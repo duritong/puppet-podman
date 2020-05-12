@@ -27,8 +27,8 @@ ExecStop=-/usr/bin/podman pod rm -f <%= @sanitised_con_name %>
 ExecReload=-/usr/bin/podman pod stop <%= @sanitised_con_name %>
 ExecReload=-/usr/bin/podman pod rm -f <%= @sanitised_con_name %>
 
-<% if @run_flags['systemd'] -%>
-<%= @run_flags['systemd'].map{|k,v| "#{k}=#{v}" }.join("\n") %>
+<% if @configuration['systemd'] -%>
+<%= @configuration['systemd'].map{|k,v| "#{k}=#{v}" }.join("\n") %>
 
 <% end -%>
 [Install]

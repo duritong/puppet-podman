@@ -20,8 +20,8 @@ ExecStartPre=-/usr/local/bin/container-update-pod.sh <%= @image %>
 ExecStart=/var/lib/containers/users/<%= @user %>/bin/<%= @unique_name %>.sh start
 ExecStop=/var/lib/containers/users/<%= @user %>/bin/<%= @unique_name %>.sh stop
 
-<% if @run_flags['systemd'] -%>
-<%= @run_flags['systemd'].map{|k,v| "#{k}=#{v}" }.join("\n") %>
+<% if @configuration['systemd'] -%>
+<%= @configuration['systemd'].map{|k,v| "#{k}=#{v}" }.join("\n") %>
 
 <% end -%>
 # security settings
