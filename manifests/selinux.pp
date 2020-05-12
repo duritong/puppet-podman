@@ -1,5 +1,11 @@
 # manages selinux related things to podman
 class podman::selinux {
+  # some containers want to use this
+  selboolean { 'virt_sandbox_use_netlink':
+    persistent => true,
+    value      => on,
+    before     => Package['podman'],
+  }
   file{
     '/var/lib/containers/selinux':
       ensure  => directory,
