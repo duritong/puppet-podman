@@ -1,3 +1,6 @@
 [storage]
-runroot = "/var/lib/containers/users/<%= @name %>/run"
-graphroot = "/var/lib/containers/users/<%= @name %>/storage"
+  driver = "overlay"
+  runroot = "/var/lib/containers/users/<%= @name %>/run"
+  graphroot = "/var/lib/containers/users/<%= @name %>/storage"
+  [storage.options]
+    mount_program = "/bin/fuse-overlayfs"
