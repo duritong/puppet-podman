@@ -89,6 +89,14 @@ define podman::container(
         su           => true,
         su_user      => 'root',
         su_group     => $real_group,
+    } -> file{
+      # manage file to workaround
+      # https://access.redhat.com/solutions/3967061
+      "${logpath}/${unique_name}.log":
+        ensure       => file,
+        create_mode  => '0640',
+        create_owner => 'root',
+        create_group => $real_group,
     }
   }
   if !defined(Podman::Container::User[$user]) {
