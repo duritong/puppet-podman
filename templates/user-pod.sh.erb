@@ -70,6 +70,9 @@ function pod_start() {
 <% if @run_flags['userns'] -%>
     --userns=<%= @run_flags['userns'] %> \
 <% end -%>
+<% unless @run_flags['read-only'].nil? -%>
+    --read-only=<%= @run_flags['read-only'] ? 'true' : 'false' %> \
+<% end -%>
 <% if @run_flags['security-opt-label-type'] -%>
     --security-opt=label=type:<%= @run_flags['security-opt-label-type'] %>.process \
 <% end -%>
