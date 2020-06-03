@@ -43,6 +43,7 @@ function pod_start() {
   [ -e <%= dir %>/<%= port %> ] && rm -f <%= dir %>/<%= port %>
   /usr/bin/podman run -d --pod <%= 'new:' if i < 1 %>pod-<%= @sanitised_con_name %> --name socket-<%= port %>-<%= @sanitised_con_name %> \
     -v <%= dir %>:/run/pod:rw  \
+    --read-only=true \
 <% if sec_label -%>
     --security-opt=label=type:<%= sec_label %>.process \
 <% end -%>
