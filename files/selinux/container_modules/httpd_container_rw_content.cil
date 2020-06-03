@@ -8,7 +8,7 @@
     (allow process httpd_log_t ( file ( getattr read write append ioctl lock map open create  )))
     (allow process httpd_sys_rw_content_t ( dir ( open read getattr lock search ioctl add_name remove_name write create setattr relabelto relabelfrom )))
     (allow process httpd_sys_rw_content_t ( file ( getattr read write append ioctl lock map open create unlink setattr relabelto relabelfrom )))
-    (allow process httpd_sys_rw_content_t ( lnk_file ( read create unlink relabelto relabelfrom )))
+    (allow process httpd_sys_rw_content_t ( lnk_file ( getattr read create unlink relabelto relabelfrom )))
     (allow process httpd_sys_rw_content_t ( sock_file ( getattr read write append open create unlink setattr relabelto relabelfrom )))
     (allow process httpd_sys_content_t ( dir ( getattr search open read lock ioctl )))
     (allow process httpd_sys_content_t ( file ( getattr read ioctl map lock open  )))
