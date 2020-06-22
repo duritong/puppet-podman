@@ -30,9 +30,9 @@ class podman(
 
   file{
     default:
-      owner  => root,
-      group  => root,
-      mode   => '0755';
+      owner => root,
+      group => root,
+      mode  => '0755';
     '/usr/local/bin/container-update-image.sh':
       source => 'puppet:///modules/podman/image_update.sh';
     '/usr/local/bin/pod-update-image.sh':
@@ -57,12 +57,12 @@ class podman(
       setype => 'container_runtime_exec_t',
   } -> file{
     '/var/lib/containers/users':
-      ensure  => directory,
-      owner   => 'root',
-      group   => 'root',
-      mode    => '0711',
+      ensure => directory,
+      owner  => 'root',
+      group  => 'root',
+      mode   => '0711',
       #seltype => 'data_home_t',
-      before  => Package['podman'];
+      before => Package['podman'];
   }
 
   $containers.each |$n,$con| {
