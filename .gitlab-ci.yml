@@ -37,7 +37,7 @@ run parallel-spec puppet 6:
 
 run parallel-spec puppet 5:
   stage: unit
-  image: ruby:2.4.4
+  image: ruby:2.4.10
   tags:
     - container
   script:
