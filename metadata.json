@@ -2,9 +2,10 @@
   "name": "duritong-podman",
   "version": "0.1.0",
   "author": "duritong",
-  "summary": "",
+  "summary": "Puppet Podman module",
   "license": "Apache-2.0",
-  "source": "",
+  "source": "https://code.immerda.ch/immerda/puppet-modules/podman.git",
+  "project_page": "https://code.immerda.ch/immerda/puppet-modules/podman.git",
   "dependencies": [
     {
       "name": "puppetlabs/concat",
