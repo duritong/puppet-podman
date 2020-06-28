@@ -3,7 +3,7 @@ stages:
   - syntax
   - unit
 
-image: ruby:2.7.1
+image: registry.code.immerda.ch/immerda/container-images/ruby/devel:2.7
 
 cache:
   paths:
