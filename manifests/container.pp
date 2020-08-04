@@ -66,7 +66,14 @@ define podman::container(
   $unique_name = regsubst("con-${user}-${container_name}", '[^0-9A-Za-z._]', '-', 'G')
 
   $real_volumes = $volumes ? {
-    Array   => $volumes.map |$s| { split($s,':') },
+    Array   => $volumes.map |$s| {
+      $v = split($s,':')
+      if $v[2] {
+        [ $v[0], join([$v[1],$v[2]],':') ]
+      } else {
+        [ $v[0], $v[1] ]
+      }
+    },
     default => $volumes,
   }
 
