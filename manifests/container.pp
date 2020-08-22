@@ -121,7 +121,7 @@ define podman::container(
   if ($ensure == 'present') and !empty($envs) {
     $_envs = $envs.map |$e| {
       if $e =~ /^([a-zA-Z0-9_]+)=%%TROCLA%%$/ {
-        trocla("container_${name}_${1}",'plain')
+        "${1}=\"${trocla("container_${name}_${1}",'plain')}\""
       } else {
         $e
       }
