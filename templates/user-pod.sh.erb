@@ -58,7 +58,7 @@ function pod_start() {
 <% @real_volumes.each do |host_dir,container_dir| -%>
     --volume <%= "#{host_dir}:#{container_dir}" %> \
 <% end -%>
-<% Array(@envs).each do |e| -%>
+<% Array(@_envs).each do |e| -%>
     --env <%= e %> \
 <% end -%>
 <% if @run_flags['hostname'] -%>

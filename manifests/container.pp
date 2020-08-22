@@ -118,6 +118,17 @@ define podman::container(
         managehome  => $manageuserhome,
     }
   }
+  if ($ensure == 'present') and !empty($envs) {
+    $_envs = $envs.map |$e| {
+      if $e =~ /^([a-zA-Z0-9_]+)=%%TROCLA%%$/ {
+        trocla("container_${name}_${1}",'plain')
+      } else {
+        $e
+      }
+    }
+  } else {
+    $_envs = []
+  }
 
   if $deployment_mode == 'pod' {
     if $pod_file {
