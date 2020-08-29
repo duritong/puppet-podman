@@ -3,15 +3,18 @@
 ---
 fixtures:
   forge_modules:
-    sysctl: "duritong/sysctl"
     concat: "puppetlabs/concat"
     stdlib: "puppetlabs/stdlib"
     lvm: "puppetlabs/lvm"
     mount_core: "puppetlabs/mount_core"
+    sysctl: "duritong/sysctl"
+    systemd: "camptocamp/systemd"
   repositories:
     disks:
-      repo: 'https://code.immerda.ch/immerda/puppet-modules/disks'
+      repo: 'https://code.immerda.ch/immerda/puppet-modules/disks.git'
+    rkhunter:
+      repo: 'https://code.immerda.ch/immerda/puppet-modules/rkhunter.git'
     selinux:
-      repo: 'https://code.immerda.ch/immerda/puppet-modules/selinux'
+      repo: 'https://code.immerda.ch/immerda/puppet-modules/selinux.git'
     user:
-      repo: 'https://code.immerda.ch/immerda/puppet-modules/user'
+      repo: 'https://code.immerda.ch/immerda/puppet-modules/user.git'
