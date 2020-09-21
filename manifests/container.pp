@@ -28,7 +28,7 @@ define podman::container(
     $envs             = [],
   Array[Variant[Integer,Pattern[/^\d+(\/(tcp|udp))?$/]]]
     $publish_firewall = [],
-  Variant[Hash[Stdlib::Compat::Absolute_Path,
+  Variant[Hash[Variant[Stdlib::Compat::Absolute_Path, String[1]],
     Stdlib::Compat::Absolute_Path],Array[Pattern[/^\/.*:\/[^:]*(:(ro|rw|Z)(,Z)?)?/]]]
     $volumes          = {},
   Hash
@@ -65,7 +65,7 @@ define podman::container(
   $sanitised_con_name = regsubst($container_name, '[^0-9A-Za-z._]', '-', 'G')
   $unique_name = regsubst("con-${user}-${container_name}", '[^0-9A-Za-z._]', '-', 'G')
 
-  $real_volumes = $volumes ? {
+  $_real_volumes = $volumes ? {
     Array   => $volumes.map |$s| {
       $v = split($s,':')
       if $v[2] {
@@ -76,6 +76,14 @@ define podman::container(
     },
     default => $volumes,
   }
+  $real_volumes = Hash($_real_volumes.map |$k,$v| {
+    if $k =~ Stdlib::Compat::Absolute_Path {
+      $_k = $k
+    } else {
+      $_k = "${real_homedir}/${k}"
+    }
+    [ $_k, $v ]
+  })
 
   if $use_rsyslog {
     rsyslog::confd{
