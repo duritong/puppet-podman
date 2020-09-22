@@ -40,9 +40,13 @@ function container_start() {
 <% Array(@_envs).each do |e| -%>
     --env <%= e %> \
 <% end -%>
-<% @real_volumes.each do |host_dir,container_dir| -%>
+<% @real_volumes.each do |host_dir,container_dir|
+   if host_dir =~ /^tmpfs/ -%>
+    --tmpfs <%= container_dir %> \
+<% else -%>
     --volume <%= "#{host_dir}:#{container_dir}" %> \
-<% end -%>
+<% end
+end -%>
 <% if @run_flags['hostname'] -%>
     --hostname=<%= @run_flags['hostname'] %> \
 <% end -%>
@@ -54,6 +58,14 @@ function container_start() {
 <% end -%>
 <% unless @run_flags['read-only'].nil? -%>
     --read-only=<%= @run_flags['read-only'] ? 'true' : 'false' %> \
+<% end -%>
+<% if @run_flags['security-opt']
+  Array(@run_flags['security-opt']).each do |so| -%>
+    --security-opt=<%= so %> \
+<% end
+end -%>
+<% if @run_flags['security-opt-seccomp'] -%>
+    --security-opt=seccomp=<%= @run_flags['security-opt-seccomp'] %> \
 <% end -%>
 <% if @run_flags['security-opt-label-type'] -%>
     --security-opt=label=type:<%= @run_flags['security-opt-label-type'] %>.process \

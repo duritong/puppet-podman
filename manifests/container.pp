@@ -77,7 +77,7 @@ define podman::container(
     default => $volumes,
   }
   $real_volumes = Hash($_real_volumes.map |$k,$v| {
-    if $k =~ Stdlib::Compat::Absolute_Path {
+    if $k =~ Stdlib::Compat::Absolute_Path or $k =~ /^tmpfs/ {
       $_k = $k
     } else {
       $_k = "${real_homedir}/${k}"
