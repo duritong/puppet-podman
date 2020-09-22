@@ -193,11 +193,12 @@ define podman::container(
       $seccomp_file = "/var/lib/containers/users/${user}/data/seccomp-${sanitised_con_name}.json"
       if $run_flags['security-opt-seccomp'] =~ Pattern[/(?i:^puppet:\/\/)/] {
         $seccomp_src = $run_flags['security-opt-seccomp']
+      } elsif $run_flags['security-opt-seccomp'] =~String {
+        $seccomp_src = "puppet:///modules/site_podman/seccomp/${run_flags['security-opt-seccomp']}.json"
       } else {
         $seccomp_src = [
           "puppet:///modules/site_podman/seccomp/${name}.json",
           "puppet:///modules/site_podman/seccomp/${container_name}.json",
-          "puppet:///modules/site_podman/seccomp/${run_flags['security-opt-seccomp']}.json",
         ]
       }
       file{
