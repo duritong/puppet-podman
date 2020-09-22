@@ -81,7 +81,7 @@ end -%>
     --security-opt=<%= so %> \
 <% end -%>
 <% if @run_flags['security-opt-seccomp'] -%>
-    --security-opt=seccomp=<%= @run_flags['security-opt-seccomp'] %> \
+    --security-opt=seccomp=<%= @seccomp_file %> \
 <% end -%>
 <% if @run_flags['security-opt-label-type'] -%>
     --security-opt=label=type:<%= @run_flags['security-opt-label-type'] %>.process \

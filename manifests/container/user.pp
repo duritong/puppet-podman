@@ -78,6 +78,12 @@ define podman::container::user(
         owner  => $name,
         group  => $name,
         mode   => '0751';
+      "/var/lib/containers/users/${name}/data":
+        ensure  => directory,
+        owner   => 'root',
+        group   => $name,
+        seltype => 'data_home_t',
+        mode    => '0640';
       "/var/lib/containers/users/${name}/bin":
         ensure  => directory,
         owner   => 'root',
@@ -102,7 +108,7 @@ define podman::container::user(
     File["/var/lib/containers/users/${name}/storage"]{
       seltype => 'data_home_t',
     }
-    File["/var/lib/containers/users/${name}/bin"]{
+    File["/var/lib/containers/users/${name}/bin","/var/lib/containers/users/${name}/data"]{
       purge   => true,
       recurse => true,
       force   => true,

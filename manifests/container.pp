@@ -140,7 +140,7 @@ define podman::container(
 
   if $deployment_mode == 'pod' {
     if $pod_file {
-      $pod_yaml_path = "/var/lib/containers/users/${user}/${sanitised_con_name}.yaml"
+      $pod_yaml_path = "/var/lib/containers/users/${user}/data/pod-${sanitised_con_name}.yaml"
       file{
         $pod_yaml_path:
           owner  => 'root',
@@ -187,6 +187,27 @@ define podman::container(
     if $run_flags['security-opt-label-type'] {
       require "podman::selinux::policy::${run_flags['security-opt-label-type']}"
       Class["podman::selinux::policy::${run_flags['security-opt-label-type']}"] ~> Systemd::Unit_file["${unique_name}.service"]
+    }
+
+    if $run_flags['security-opt-seccomp'] {
+      $seccomp_file = "/var/lib/containers/users/${user}/data/seccomp-${sanitised_con_name}.json"
+      if $run_flags['security-opt-seccomp'] =~ Pattern[/(?i:^puppet:\/\/)/] {
+        $seccomp_src = $run_flags['security-opt-seccomp']
+      } else {
+        $seccomp_src = [
+          "puppet:///modules/site_podman/seccomp/${name}.json",
+          "puppet:///modules/site_podman/seccomp/${container_name}.json",
+          "puppet:///modules/site_podman/seccomp/${run_flags['security-opt-seccomp']}.json",
+        ]
+      }
+      file{
+        $seccomp_file:
+          source => $seccomp_src,
+          owner  => 'root',
+          group  => $real_gid,
+          mode   => '0750',
+          notify => Systemd::Unit_file["${unique_name}.service"],
+      }
     }
 
     if empty($publish_socket) and $deployment_mode == 'container' {
