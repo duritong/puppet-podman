@@ -56,6 +56,9 @@ end -%>
 <% if @run_flags['userns'] -%>
     --userns=<%= @run_flags['userns'] %> \
 <% end -%>
+<% unless @run_flags['network'].nil? -%>
+    --network=<%= @run_flags['network'] %> \
+<% end -%>
 <% unless @run_flags['read-only'].nil? -%>
     --read-only=<%= @run_flags['read-only'] ? 'true' : 'false' %> \
 <% end -%>

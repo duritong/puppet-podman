@@ -212,6 +212,9 @@ define podman::container(
     }
 
     if empty($publish_socket) and $deployment_mode == 'container' {
+      if $run_flags['network'] == 'isolated' {
+        fail('isolated network is not supported without a publish_socket')
+      }
       File["/var/lib/containers/users/${user}/bin/${unique_name}.sh"]{
         content => template('podman/user-container.sh.erb'),
       }
