@@ -34,7 +34,7 @@ function pod_start() {
   fi
   echo "Starting Pod <%= @sanitised_con_name %>"
   set -e
-<% publish_socket_0_con_name = "socket-#{@publish_socket[@publish_socket.keys.first]}-#{@sanitised_con_name}"
+<% publish_socket_0_con_name = "socket-#{@publish_socket.keys.first}-#{@sanitised_con_name}"
 @publish_socket.keys.each_with_index do |port,i|
   vals = @publish_socket[port]
   dir = vals['dir'] || File.join(@homedir, 'tmp/run')
