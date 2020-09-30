@@ -34,7 +34,8 @@ function pod_start() {
   fi
   echo "Starting Pod <%= @sanitised_con_name %>"
   set -e
-<% @publish_socket.keys.each_with_index do |port,i|
+<% publish_socket_0_con_name = "socket-#{@publish_socket[@publish_socket.keys.first]}-#{@sanitised_con_name}"
+@publish_socket.keys.each_with_index do |port,i|
   vals = @publish_socket[port]
   dir = vals['dir'] || File.join(@homedir, 'tmp/run')
   mode = vals['mode'] || '0777'
@@ -42,9 +43,13 @@ function pod_start() {
   [ -e <%= dir %>/<%= port %> ] && rm -f <%= dir %>/<%= port %>
   /usr/bin/podman run -d --pod <%= 'new:' if i < 1 %>pod-<%= @sanitised_con_name %> --name socket-<%= port %>-<%= @sanitised_con_name %> \
     -v <%= dir %>:/run/pod:rw  \
-<% if @run_flags['network'] == 'isolated' -%>
+<% if @run_flags['network'] == 'isolated'
+ if i == 0 -%>
     --network=none \
-<% elsif !@run_flags['network'].nil? -%>
+<% else -%>
+    --network=container:$(podman ps --format={{.ID}} -f name=<%= publish_socket_0_con_name %>) \
+<% end
+  elsif !@run_flags['network'].nil? -%>
     --network=<%= @run_flags['network'] %> \
 <% end -%>
     --read-only=true \
@@ -80,7 +85,7 @@ end -%>
     --userns=<%= @run_flags['userns'] %> \
 <% end -%>
 <% if @run_flags['network'] == 'isolated' -%>
-    --network=container:$(podman ps --format={{.ID}} -f name=socket-<%= port %>-<%= @sanitised_con_name %>) \
+    --network=container:$(podman ps --format={{.ID}} -f name=<%= publish_socket_0_con_name %>) \
 <% elsif !@run_flags['network'].nil? -%>
     --network=<%= @run_flags['network'] %> \
 <% end -%>
