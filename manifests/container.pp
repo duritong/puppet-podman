@@ -41,6 +41,8 @@ define podman::container(
     $manage_user      = true,
   Boolean
     $use_rsyslog      = true,
+  Hash[Pattern[/^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])(:\d+)?$/],Struct[{user => Pattern[/^[a-zA-Z0-9]+$/], password => Pattern[/^[a-zA-Z0-9\|\+\.\*\%\_]+$/], }]]
+    $auth             = {},
   Stdlib::Compat::Absolute_Path
     $logpath          = '/var/log/containers',
   Hash
@@ -289,6 +291,16 @@ define podman::container(
             require         => Systemd::Unit_file["${unique_name}.service"],
         }
       }
+    }
+    file{
+      "/var/lib/containers/users/${user}/data/auth-${name}.yaml":
+        content => template('podman/auth-file.yaml.erb'),
+        owner   => $user,
+        group   => $real_group,
+        mode    => '0400',
+    } -> concat::fragment{"podman-auth-files-${user}-${name}":
+      target  => "podman-auth-files-${user}", # no newline!
+      content => "/var/lib/containers/users/${user}/data/auth-${name}.yaml ",
     }
     concat::fragment{
       "${name}-image-lifecycle":

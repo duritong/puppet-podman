@@ -30,6 +30,7 @@ define podman::pod_images(
     group       => $real_group,
     cwd         => $homedir,
     environment => ["HOME=${homedir}",
-                    "XDG_RUNTIME_DIR=/run/pods/${uid}"],
+                    "XDG_RUNTIME_DIR=/run/pods/${uid}",
+                    "REGISTRY_AUTH_FILE=/var/lib/containers/users/${user}/data/auth.json"],
   }
 }

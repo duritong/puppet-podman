@@ -11,7 +11,7 @@ Restart=on-failure
 User=<%= @user %>
 Group=<%= @real_group %>
 
-Environment="XDG_RUNTIME_DIR=/run/pods/<%= @uid %>"
+Environment="XDG_RUNTIME_DIR=/run/pods/<%= @uid %> REGISTRY_AUTH_FILE=/var/lib/containers/users/<%= @user %>/data/auth.json"
 
 SyslogIdentifier=<%= @unique_name %>
 

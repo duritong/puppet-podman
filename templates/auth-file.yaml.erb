@@ -1,0 +1,12 @@
+---
+<% @auth.each do |reg,data|
+  trocla_keys = data['password'].scan(/%%TROCLA_[\w_\-]+%%/)
+  trocla_keys.each do |k|
+    tk = k.match(/%%TROCLA_([\w_\-]+)%%/)[1]
+    data['password'].gsub!(k,scope.call_function('trocla', ["container_#{@name}_#{tk}",'plain']))
+  end
+-%>
+'<%= reg %>':
+  user: '<%= data['user'] %>'
+  password: '<%= data['password'] %>'
+<% end -%>

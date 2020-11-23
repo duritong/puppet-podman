@@ -13,7 +13,7 @@ class podman(
 
   sysctl::value{
     'user.max_user_namespaces':
-      value => '28633'
+      value => '28633',
   } -> package{
     [ 'slirp4netns', 'podman', 'runc' ]:
       ensure => installed,
@@ -33,6 +33,8 @@ class podman(
       owner => root,
       group => root,
       mode  => '0755';
+    '/usr/local/bin/container-yaml-auth-to-authfile.rb':
+      source => 'puppet:///modules/podman/yaml-to-authfile.rb';
     '/usr/local/bin/container-update-image.sh':
       source => 'puppet:///modules/podman/image_update.sh';
     '/usr/local/bin/pod-update-image.sh':
