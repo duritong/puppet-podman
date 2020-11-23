@@ -4,21 +4,21 @@ require 'yaml'
 require 'json'
 require 'base64'
 
-yaml = {}
-
-ARGV.each do |f|
+all_yaml = ARGV.each_with_object({}) do |f, yaml|
   if File.file?(f)
     # sanitize input like this
     h = YAML.load_file(f)
     if h.is_a?(Hash)
-      h.each do |reg,data|
+      h.each do |reg, data|
         reg = reg.downcase
         if yaml[reg].nil?
-          if (['user','password'].sort == data.keys.sort)
-            yaml[reg] = data
+          # rubocop:disable Metrics/BlockNesting
+          if ['user', 'password'].sort == data.keys.sort
+            yaml[reg] = Base64.strict_encode64("#{data['user']}:#{data['password']}")
           else
             STDERR.puts "Registry #{reg} does not have all fields (#{data.inspect}) - Skipping"
           end
+          # rubocop:enable Metrics/BlockNesting
         else
           STDERR.puts "Registry #{reg} already present - Skipping"
         end
@@ -31,10 +31,4 @@ ARGV.each do |f|
   end
 end
 
-res = {}
-
-res = yaml.inject({}) do |res,(reg,data)|
-  res[reg] = Base64.strict_encode64("#{data['user']}:#{data['password']}")
-  res
-end
-puts ({ auths: res }.to_json)
+puts({ auths: all_yaml }.to_json)
