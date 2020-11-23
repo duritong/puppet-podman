@@ -134,7 +134,7 @@ define podman::container::user(
       user        => $name,
       group       => $name,
       refreshonly => true,
-      subscribe   => Concat["/var/lib/containers/users/${name}/data/auth_files.arg"],
+      subscribe   => Concat["podman-auth-files-${name}"],
     } -> file{"/var/lib/containers/users/${name}/data/auth.json":
       ensure => file,
       owner  => $name,
