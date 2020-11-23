@@ -295,9 +295,9 @@ define podman::container(
     file{
       "/var/lib/containers/users/${user}/data/auth-${name}.yaml":
         content => template('podman/auth-file.yaml.erb'),
-        owner   => $user,
+        owner   => 'root',
         group   => $real_group,
-        mode    => '0400',
+        mode    => '0440',
     } -> concat::fragment{"podman-auth-files-${user}-${name}":
       target  => "podman-auth-files-${user}", # no newline!
       content => "/var/lib/containers/users/${user}/data/auth-${name}.yaml ",

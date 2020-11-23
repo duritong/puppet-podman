@@ -60,34 +60,34 @@ define podman::container::user(
       "${homedir}/.bash_profile":
         content => "[[ -r ~/.bashrc ]] && . ~/.bashrc\n",
         owner   => 'root',
-        group   => $name,
+        group   => $group,
         mode    => '0640';
       "${homedir}/.bashrc":
         content => "export XDG_RUNTIME_DIR=/run/pods/${uid}\nexport REGISTRY_AUTH_FILE=/var/lib/containers/users/${name}/data/auth.json",
         owner   => 'root',
-        group   => $name,
+        group   => $group,
         mode    => '0640';
     } -> File["/var/lib/containers/users/${name}"]{
       ensure => directory,
       owner  => $name,
-      group  => $name,
+      group  => $group,
       mode   => '0751',
     } -> file{
       "/var/lib/containers/users/${name}/storage":
         ensure => directory,
         owner  => $name,
-        group  => $name,
+        group  => $group,
         mode   => '0751';
       "/var/lib/containers/users/${name}/data":
         ensure  => directory,
         owner   => 'root',
-        group   => $name,
+        group   => $group,
         seltype => 'data_home_t',
         mode    => '0640';
       "/var/lib/containers/users/${name}/bin":
         ensure  => directory,
         owner   => 'root',
-        group   => $name,
+        group   => $group,
         seltype => 'container_runtime_exec_t',
         mode    => '0640';
       [ "${homedir}/.local",
@@ -97,12 +97,12 @@ define podman::container::user(
       "${homedir}/.config/containers", ]:
         ensure => directory,
         owner  => $name,
-        group  => $name,
+        group  => $group,
         mode   => '0640';
       "${homedir}/.config/containers/storage.conf":
         content => template('podman/users-storage.conf.erb'),
         owner   => $name,
-        group   => $name,
+        group   => $group,
         mode    => '0640';
     }
     File["/var/lib/containers/users/${name}/storage"]{
@@ -118,7 +118,7 @@ define podman::container::user(
         command     => 'podman info',
         creates     => "/var/lib/containers/users/${name}/storage/libpod/bolt_state.db",
         user        => $name,
-        group       => $name,
+        group       => $group,
         cwd         => $homedir,
         require     => [File["${homedir}/.config/containers"],
                         Exec[systemd-tmpfiles] ],
@@ -126,25 +126,28 @@ define podman::container::user(
                         "XDG_RUNTIME_DIR=/run/pods/${uid}"],
     } -> concat{"podman-auth-files-${name}":
       path  => "/var/lib/containers/users/${name}/data/auth_files.args",
-      owner => $name,
-      group => $name,
-      mode  => '0400',
+      owner => 'root',
+      group => $group,
+      mode  => '0440',
+    } -> exec{"pre-init-podman-auth-file-${name}":
+      command => "bash -c \"touch /var/lib/containers/users/${name}/data/auth.json && chown ${user} /var/lib/containers/users/${name}/data/auth.json\"",
+      creates => "/var/lib/containers/users/${name}/data/auth.json",
     } ~> exec{"init-podman-auth-file-${name}":
       command     => "bash -c \"/usr/local/bin/container-yaml-auth-to-authfile.rb $(cat /var/lib/containers/users/${name}/data/auth_files.args)\" > /var/lib/containers/users/${name}/data/auth.json",
       user        => $name,
-      group       => $name,
+      group       => $group,
       refreshonly => true,
       subscribe   => Concat["podman-auth-files-${name}"],
     } -> file{"/var/lib/containers/users/${name}/data/auth.json":
       ensure => file,
       owner  => $name,
-      group  => $name,
+      group  => $group,
       mode   => '0600',
     } -> file{"/run/pods/${uid}/containers/auth.json":
       # copy for convenience if REGISTRY_AUTH_FILE is not set
       source => "/var/lib/containers/users/${name}/data/auth.json",
       owner  => $name,
-      group  => $name,
+      group  => $group,
       mode   => '0600',
     }
   } else {
