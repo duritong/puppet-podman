@@ -14,7 +14,7 @@ all_yaml = ARGV.each_with_object({}) do |f, yaml|
         if yaml[reg].nil?
           # rubocop:disable Metrics/BlockNesting
           if ['user', 'password'].sort == data.keys.sort
-            yaml[reg] = Base64.strict_encode64("#{data['user']}:#{data['password']}")
+            yaml[reg] = { auth: Base64.strict_encode64("#{data['user']}:#{data['password']}") }
           else
             STDERR.puts "Registry #{reg} does not have all fields (#{data.inspect}) - Skipping"
           end
