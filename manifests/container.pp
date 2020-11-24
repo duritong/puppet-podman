@@ -41,7 +41,7 @@ define podman::container(
     $manage_user      = true,
   Boolean
     $use_rsyslog      = true,
-  Hash[Pattern[/^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])(:\d+)?$/],Struct[{user => Pattern[/^[a-zA-Z0-9]+$/], password => Pattern[/^[a-zA-Z0-9\|\+\.\*\%\_]+$/], }]]
+  Hash[Pattern[/^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])(:\d+)?$/],Struct[{user => Pattern[/^[a-zA-Z0-9_\.]+$/], password => Pattern[/^[a-zA-Z0-9\|\+\.\*\%\_]+$/], }]]
     $auth             = {},
   Stdlib::Compat::Absolute_Path
     $logpath          = '/var/log/containers',
