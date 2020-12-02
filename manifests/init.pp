@@ -19,6 +19,9 @@ class podman(
       ensure => installed,
   } -> User<| title != 'root' |>
 
+  include yum::centos::disable_rhsmcertd
+  Package['podman'] -> Class['yum::centos::disable_rhsmcertd']
+
   # have our own tmpdirs and make it short as sockets
   # go into that dir, which can have limited length
   # https://github.com/containers/libpod/issues/4057
