@@ -176,13 +176,20 @@ define podman::container(
     }
     $systemd_unit_file = 'podman/user-container.service.erb'
   }
-  systemd::unit_file{
+  if $ensure != 'absent' {
+    systemd::unit_file{
       "${unique_name}.service":
         ensure  => $ensure,
         content => template($systemd_unit_file),
         enable  => true,
         active  => true,
         require => Package['podman'],
+    }
+  } else {
+    systemd::unit_file{
+      "${unique_name}.service":
+        ensure  => $ensure,
+    }
   }
 
   if $ensure == 'present' {
