@@ -140,14 +140,6 @@ define podman::container(
     $_envs = []
   }
 
-  if $ensure == 'absent' {
-    Systemd::Unit_file{
-      "${unique_name}.service":
-        enable => false,
-        active => false,
-    }
-  }
-
   if $deployment_mode == 'pod' {
     if $pod_file {
       $pod_yaml_path = "/var/lib/containers/users/${user}/data/pod-${sanitised_con_name}.yaml"
@@ -184,13 +176,23 @@ define podman::container(
     }
     $systemd_unit_file = 'podman/user-container.service.erb'
   }
+
   systemd::unit_file{
     "${unique_name}.service":
-      ensure  => $ensure,
+      ensure => $ensure,
+  }
+  if $ensure != 'absent' {
+    Systemd::Unit_file["${unique_name}.service"]{
       content => template($systemd_unit_file),
       enable  => true,
       active  => true,
       require => Package['podman'],
+    }
+  } else {
+    Systemd::Unit_file["${unique_name}.service"]{
+      enable => false,
+      active => false,
+    }
   }
 
   if $ensure == 'present' {
