@@ -1,5 +1,5 @@
 # manages a running container
-define podman::container(
+define podman::container (
   String[1,32]
     $user,
   Pattern[/^[\S]*$/]
@@ -41,15 +41,15 @@ define podman::container(
     $manage_user      = true,
   Boolean
     $use_rsyslog      = true,
-  Hash[Pattern[/^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])(:\d+)?$/],Struct[{user => Pattern[/^[a-zA-Z0-9_\.]+$/], password => Pattern[/^[a-zA-Z0-9\|\+\.\*\%\_]+$/], }]]
+  Hash[Pattern[/^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])(:\d+)?$/],Struct[{ user => Pattern[/^[a-zA-Z0-9_\.]+$/], password => Pattern[/^[a-zA-Z0-9\|\+\.\*\%\_]+$/], }]]
     $auth             = {},
-  Hash[Stdlib::Compat::Absolute_Path, Struct[{content => Optional[String], source => Optional[String], ensure => Optional[Enum['directory','file']], replace => Optional[Boolean], owner => Optional[Variant[String,Integer]], mode => Optional[Stdlib::Filemode]}]]
+  Hash[Stdlib::Compat::Absolute_Path, Struct[{ content => Optional[String], source => Optional[String], ensure => Optional[Enum['directory','file']], replace => Optional[Boolean], owner => Optional[Variant[String,Integer]], mode => Optional[Stdlib::Filemode] }]]
     $user_files       = {},
   Stdlib::Compat::Absolute_Path
     $logpath          = '/var/log/containers',
   Hash
     $configuration    = {},
-){
+) {
   if $homedir {
     $real_homedir = $homedir
   } else {
@@ -73,9 +73,9 @@ define podman::container(
     Array   => Hash($volumes.map |$s| {
       $v = split($s,':')
       if $v[2] {
-        [ $v[0], join([$v[1],$v[2]],':') ]
+        [$v[0], join([$v[1],$v[2]],':')]
       } else {
-        [ $v[0], $v[1] ]
+        [$v[0], $v[1]]
       }
     }),
     default => $volumes,
@@ -86,15 +86,15 @@ define podman::container(
     } else {
       $_k = "${real_homedir}/${k}"
     }
-    [ $_k, $v ]
+    [$_k, $v]
   })
 
   if $use_rsyslog {
-    rsyslog::confd{
+    rsyslog::confd {
       $unique_name:
         ensure  => $ensure,
         content => template('podman/rsyslog-confd.erb'),
-    } -> logrotate::rule{
+    } -> logrotate::rule {
       $unique_name:
         ensure       => $ensure,
         path         => "${logpath}/${unique_name}.log",
@@ -108,7 +108,7 @@ define podman::container(
         su           => true,
         su_user      => 'root',
         su_group     => $real_group,
-    } -> file{
+    } -> file {
       # manage file to workaround
       # https://access.redhat.com/solutions/3967061
       "${logpath}/${unique_name}.log":
@@ -119,7 +119,7 @@ define podman::container(
     }
   }
   if !defined(Podman::Container::User[$user]) {
-    podman::container::user{
+    podman::container::user {
       $user:
         ensure      => $ensure,
         manage_user => $manage_user,
@@ -145,7 +145,7 @@ define podman::container(
   if $deployment_mode == 'pod' {
     if $pod_file {
       $pod_yaml_path = "/var/lib/containers/users/${user}/data/pod-${sanitised_con_name}.yaml"
-      file{
+      file {
         $pod_yaml_path:
           owner  => 'root',
           group  => $real_gid,
@@ -154,11 +154,11 @@ define podman::container(
           before => Podman::Pod_images[$name];
       }
       if $pod_file =~ /puppet:\/\// {
-        File[$pod_yaml_path]{
+        File[$pod_yaml_path] {
           source => $pod_file,
         }
       } else {
-        File[$pod_yaml_path]{
+        File[$pod_yaml_path] {
           content => template($pod_file),
         }
       }
@@ -166,7 +166,7 @@ define podman::container(
 
     $systemd_unit_file = 'podman/user-pod.service.erb'
   } else {
-    file{
+    file {
       "/var/lib/containers/users/${user}/bin/${unique_name}.sh":
         ensure  => $ensure,
         owner   => 'root',
@@ -179,7 +179,7 @@ define podman::container(
     $systemd_unit_file = 'podman/user-container.service.erb'
   }
 
-  systemd::unit_file{
+  systemd::unit_file {
     "${unique_name}.service":
       ensure => $ensure,
   }
@@ -215,7 +215,7 @@ define podman::container(
           "puppet:///modules/site_podman/seccomp/${container_name}.json",
         ]
       }
-      file{
+      file {
         $seccomp_file:
           source => $seccomp_src,
           owner  => 'root',
@@ -229,22 +229,22 @@ define podman::container(
       if $run_flags['network'] == 'isolated' {
         fail('isolated network is not supported without a publish_socket')
       }
-      File["/var/lib/containers/users/${user}/bin/${unique_name}.sh"]{
+      File["/var/lib/containers/users/${user}/bin/${unique_name}.sh"] {
         content => template('podman/user-container.sh.erb'),
       }
     } elsif $deployment_mode == 'container' {
       $publish_socket.each |$k,$v| {
-        if $v['security-opt-label-type']{
+        if $v['security-opt-label-type'] {
           require "podman::selinux::policy::${v['security-opt-label-type']}"
           Class["podman::selinux::policy::${v['security-opt-label-type']}"] ~> Systemd::Unit_file["${unique_name}.service"]
         }
       }
-      File["/var/lib/containers/users/${user}/bin/${unique_name}.sh"]{
+      File["/var/lib/containers/users/${user}/bin/${unique_name}.sh"] {
         content => template('podman/user-pod.sh.erb'),
       }
     }
     if $deployment_mode == 'container' {
-      podman::image{
+      podman::image {
         $name:
           user    => $user,
           group   => $real_group,
@@ -253,20 +253,19 @@ define podman::container(
           homedir => $real_homedir,
       } -> Systemd::Unit_file["${unique_name}.service"]
     } else {
-      podman::pod_images{
+      podman::pod_images {
         $name:
           user     => $user,
           group    => $real_group,
           pod_yaml => $pod_yaml_path,
           uid      => $uid,
           homedir  => $real_homedir,
-
       } -> Systemd::Unit_file["${unique_name}.service"]
     }
     if $deployment_mode == 'pod' or (!empty($publish_socket) and !defined(Podman::Image["${user}-pause"])) {
       # make sure we have also the pause image fetched
       if !defined(Podman::Image["${user}-pause"]) {
-        podman::image{
+        podman::image {
           "${user}-pause":
             user    => $user,
             group   => $real_group,
@@ -278,7 +277,7 @@ define podman::container(
     }
 
     if !empty($publish_socket) and !defined(Podman::Image["${user}-socat"]) {
-      podman::image{
+      podman::image {
         "${user}-socat":
           user    => $user,
           group   => $real_group,
@@ -317,26 +316,26 @@ define podman::container(
         $_k = "${real_homedir}/${k}"
       }
       if 'content' in $v and $v['content'] =~ /<%=/ {
-        $_v = $v.merge({ content => Sensitive(template($v['content'])), })
+        $_v = $v.merge( { content => Sensitive(template($v['content'])), })
       } else {
         $_v = $v
       }
-      file{
+      file {
         $_k:
-          * => $user_files_defaults.merge($v),
+          * => $user_files_defaults.merge($_v),
       }
     }
-    file{
+    file {
       "/var/lib/containers/users/${user}/data/auth-${name}.yaml":
         content => template('podman/auth-file.yaml.erb'),
         owner   => 'root',
         group   => $real_group,
         mode    => '0440',
-    } -> concat::fragment{"podman-auth-files-${user}-${name}":
+    } -> concat::fragment { "podman-auth-files-${user}-${name}":
       target  => "podman-auth-files-${user}", # no newline!
       content => "/var/lib/containers/users/${user}/data/auth-${name}.yaml ",
     }
-    concat::fragment{
+    concat::fragment {
       "${name}-image-lifecycle":
         target  => "/etc/cron.daily/podman-${user}-image-lifecycle.sh",
         content => template('podman/user-image-lifecycle.erb');
