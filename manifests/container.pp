@@ -43,6 +43,8 @@ define podman::container(
     $use_rsyslog      = true,
   Hash[Pattern[/^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])(:\d+)?$/],Struct[{user => Pattern[/^[a-zA-Z0-9_\.]+$/], password => Pattern[/^[a-zA-Z0-9\|\+\.\*\%\_]+$/], }]]
     $auth             = {},
+  Hash[Stdlib::Compat::Absolute_Path, Struct[{content => Optional[String], source => Optional[String], ensure => Optional[Enum['directory','file']], replace => Optional[Boolean], owner => Optional[Variant[String,Integer]], mode => Optional[Stdlib::Filemode]}]]
+    $user_files       = {},
   Stdlib::Compat::Absolute_Path
     $logpath          = '/var/log/containers',
   Hash
@@ -300,6 +302,28 @@ define podman::container(
             action          => 'ACCEPT',
             require         => Systemd::Unit_file["${unique_name}.service"],
         }
+      }
+    }
+    $user_files_defaults = {
+      owner  => $uid,
+      group  => $real_group,
+      mode   => '0640',
+      notify => Systemd::Unit_file["${unique_name}.service"],
+    }
+    $user_files.each |$k,$v| {
+      if $k =~ Stdlib::Compat::Absolute_Path {
+        $_k = $k
+      } else {
+        $_k = "${real_homedir}/${k}"
+      }
+      if 'content' in $v and $v['content'] =~ /<%=/ {
+        $_v = $v.merge({ content => Sensitive(template($v['content'])), })
+      } else {
+        $_v = $v
+      }
+      file{
+        $_k:
+          * => $user_files_defaults.merge($v),
       }
     }
     file{
