@@ -304,10 +304,11 @@ define podman::container (
       }
     }
     $user_files_defaults = {
-      owner  => $uid,
-      group  => $real_group,
-      mode   => '0640',
-      notify => Systemd::Unit_file["${unique_name}.service"],
+      owner                   => $uid,
+      group                   => $real_group,
+      mode                    => '0640',
+      selinux_ignore_defaults => true,
+      notify                  => Systemd::Unit_file["${unique_name}.service"],
     }
     $user_files.each |$k,$v| {
       if $k =~ Stdlib::Unixpath {
