@@ -184,14 +184,14 @@ define podman::container (
       ensure => $ensure,
   }
   if $ensure != 'absent' {
-    Systemd::Unit_file["${unique_name}.service"]{
+    Systemd::Unit_file["${unique_name}.service"] {
       content => template($systemd_unit_file),
       enable  => true,
       active  => true,
       require => Package['podman'],
     }
   } else {
-    Systemd::Unit_file["${unique_name}.service"]{
+    Systemd::Unit_file["${unique_name}.service"] {
       enable => false,
       active => false,
     }
@@ -315,8 +315,9 @@ define podman::container (
       } else {
         $_k = "${real_homedir}/${k}"
       }
-      if 'content' in $v and $v['content'] =~ /<%=/ {
-        $_v = $v.merge( { content => Sensitive(template($v['content'])), })
+      if 'content' in $v and $v['content'] =~ /%%TROCLA_/ {
+        $trocla_data = $v['content']
+        $_v = $v.merge( { content => Sensitive(trocla::gsub($v['content'], { prefix => "container_${name}_", })) })
       } else {
         $_v = $v
       }
