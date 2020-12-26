@@ -28,12 +28,12 @@ define podman::container (
     $envs             = [],
   Array[Variant[Integer,Pattern[/^\d+(\/(tcp|udp))?$/]]]
     $publish_firewall = [],
-  Variant[Hash[Variant[Stdlib::Compat::Absolute_Path, String[1]],
-    Stdlib::Compat::Absolute_Path],Array[Pattern[/^\/.*:\/[^:]*(:(ro|rw|Z)(,Z)?)?/]]]
+  Variant[Hash[Variant[Stdlib::Unixpath, String[1]],
+    Stdlib::Unixpath],Array[Pattern[/^\/.*:\/[^:]*(:(ro|rw|Z)(,Z)?)?/]]]
     $volumes          = {},
   Hash
     $run_flags        = {},
-  Optional[Stdlib::Compat::Absolute_Path]
+  Optional[Stdlib::Unixpath]
     $homedir          = undef,
   Boolean
     $manageuserhome   = true,
@@ -43,9 +43,9 @@ define podman::container (
     $use_rsyslog      = true,
   Hash[Pattern[/^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])(:\d+)?$/],Struct[{ user => Pattern[/^[a-zA-Z0-9_\.]+$/], password => Pattern[/^[a-zA-Z0-9\|\+\.\*\%\_]+$/], }]]
     $auth             = {},
-  Hash[Stdlib::Compat::Absolute_Path, Struct[{ content => Optional[String], source => Optional[String], ensure => Optional[Enum['directory','file']], replace => Optional[Boolean], owner => Optional[Variant[String,Integer]], mode => Optional[Stdlib::Filemode] }]]
+  Hash[Variant[Stdlib::Unixpath, String[1]], Struct[{ content => Optional[String], source => Optional[String], ensure => Optional[Enum['directory','file']], replace => Optional[Boolean], owner => Optional[Variant[String,Integer]], mode => Optional[Stdlib::Filemode] }]]
     $user_files       = {},
-  Stdlib::Compat::Absolute_Path
+  Stdlib::Unixpath
     $logpath          = '/var/log/containers',
   Hash
     $configuration    = {},
@@ -81,7 +81,7 @@ define podman::container (
     default => $volumes,
   }
   $real_volumes = Hash($_real_volumes.map |$k,$v| {
-    if $k =~ Stdlib::Compat::Absolute_Path or $k =~ /^tmpfs/ {
+    if $k =~ Stdlib::Unixpath or $k =~ /^tmpfs/ {
       $_k = $k
     } else {
       $_k = "${real_homedir}/${k}"
@@ -310,7 +310,7 @@ define podman::container (
       notify => Systemd::Unit_file["${unique_name}.service"],
     }
     $user_files.each |$k,$v| {
-      if $k =~ Stdlib::Compat::Absolute_Path {
+      if $k =~ Stdlib::Unixpath {
         $_k = $k
       } else {
         $_k = "${real_homedir}/${k}"
