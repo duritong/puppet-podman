@@ -15,7 +15,7 @@ Environment="XDG_RUNTIME_DIR=/run/pods/<%= @uid %>" "REGISTRY_AUTH_FILE=/var/lib
 SyslogIdentifier=<%= @unique_name %>
 
 <% unless @run_flags['skip_image_pull'] -%>
-ExecStartPre=-/usr/local/bin/container-update-pod.sh <%= @image %>
+ExecStartPre=-/usr/local/bin/container-update-image.sh <%= @image %>
 <% end -%>
 ExecStart=/var/lib/containers/users/<%= @user %>/bin/<%= @unique_name %>.sh start
 ExecStop=/var/lib/containers/users/<%= @user %>/bin/<%= @unique_name %>.sh stop
