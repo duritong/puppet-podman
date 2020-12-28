@@ -4,7 +4,7 @@
       String $container_name,
       String $service_name,
       String $cmd,
-      String $uid,
+      Variant[String[1],Integer] $uid,
       String $user,
       String $group,
       Stdlib::Unixpath $homedir,
