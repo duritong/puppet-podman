@@ -45,7 +45,7 @@ define podman::container (
     $auth             = {},
   Hash[Variant[Stdlib::Unixpath, String[1]], Struct[{ content => Optional[String], source => Optional[String], ensure => Optional[Enum['directory','file']], replace => Optional[Boolean], owner => Optional[Variant[String,Integer]], mode => Optional[Stdlib::Filemode] }]]
     $user_files       = {},
-  Hash[Pattern[/^[a-zA-Z0-9_\-]$/],Struct[{ ensure => Optional[Enum['present','absent']], cmd => String[1], on_calendar => Optional[String], randomize_delay_sec => Optional[String], trigger_restart => Optional[Boolean], }]]
+  Hash[Pattern[/^[a-zA-Z0-9_\-]+$/],Struct[{ ensure => Optional[Enum['present','absent']], cmd => String[1], on_calendar => Optional[String], randomize_delay_sec => Optional[String], trigger_restart => Optional[Boolean], }]]
     $cron_jobs        = {},
   Stdlib::Unixpath
     $logpath          = '/var/log/containers',
