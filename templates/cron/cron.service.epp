@@ -1,0 +1,53 @@
+<%- | String $cron_name,
+      Boolean $trigger_restart,
+      Optional[String] $pod_name,
+      String $container_name,
+      String $service_name,
+      String $cmd,
+      String $uid,
+      String $user,
+      String $group,
+      Stdlib::Unixpath $homedir,
+| -%>
+[Unit]
+Description=Cron <%= $cron_name %> for <%= $service_name %>
+
+After=<%= $service_name %>.service
+OnFailure=status_email_root@%n.service
+
+[Service]
+User=<%= $user %>
+Group=<%= $group %>
+
+Environment="XDG_RUNTIME_DIR=/run/pods/<%= $uid %>"
+
+SyslogIdentifier=cron-<%= $container_name %>
+
+ExecStart=/usr/bin/podman exec <%= $container_name %> <%= $cmd %>
+<% if $trigger_restart {
+  if $pod_name { -%>
+ExecStartPost=/usr/bin/podman pod stop <%= $pod_name %>
+<% } else { -%>
+ExecStartPost=/usr/bin/podman stop <%= $container_name %>
+<% }
+} -%>
+
+# security settings
+PrivateTmp=true
+
+ProtectSystem=full
+# to be migrated once in EL7
+# ProtectSystem=strict
+
+# not yet available
+# to be migrated once in EL7
+#PrivateUsers=true
+#ProtectKernelTunables=true
+#ProtectKernelModules=true
+#ProtectControlGroups=yes
+
+ReadOnlyDirectories=/
+ReadWriteDirectories=<%= $homdir %>
+ReadWriteDirectories=/var/lib/containers/users/<%= $user %>/run/
+ReadWriteDirectories=/var/lib/containers/users/<%= $user %>/storage/
+ReadWriteDirectories=/run/pods/<%= $uid %>/

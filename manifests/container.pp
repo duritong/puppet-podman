@@ -45,6 +45,8 @@ define podman::container (
     $auth             = {},
   Hash[Variant[Stdlib::Unixpath, String[1]], Struct[{ content => Optional[String], source => Optional[String], ensure => Optional[Enum['directory','file']], replace => Optional[Boolean], owner => Optional[Variant[String,Integer]], mode => Optional[Stdlib::Filemode] }]]
     $user_files       = {},
+  Hash[Pattern[/^[a-zA-Z0-9_\-]$/],Struct[{ ensure => Optional[Enum['present','absent']], cmd => String[1], on_calendar => Optional[String], randomize_delay_sec => Optional[String], trigger_restart => Optional[Boolean], }]]
+    $cron_jobs        = {},
   Stdlib::Unixpath
     $logpath          = '/var/log/containers',
   Hash
@@ -197,6 +199,19 @@ define podman::container (
     }
   }
 
+  # actual content parsing comes more below
+  $cron_jobs.each |$cron_name,$cron_vals| {
+    if $ensure == 'absent' {
+      $_ensure = 'absent'
+    } else {
+      $_ensure = pick($cron_vals['ensure'],$ensure)
+    }
+    systemd::timer {
+      "${unique_name}-${cron_name}.timer":
+        ensure => $_ensure,
+    }
+  }
+
   if $ensure == 'present' {
     if $run_flags['security-opt-label-type'] {
       require "podman::selinux::policy::${run_flags['security-opt-label-type']}"
@@ -262,7 +277,13 @@ define podman::container (
           homedir  => $real_homedir,
       } -> Systemd::Unit_file["${unique_name}.service"]
     }
-    if $deployment_mode == 'pod' or (!empty($publish_socket) and !defined(Podman::Image["${user}-pause"])) {
+    if $deployment_mode == 'pod' or !empty($publish_socket) {
+      if !empty($publish_socket) {
+        $pod_name = "pod-${sanitised_con_name}"
+      } else {
+        $pod_name = $sanitised_con_name
+      }
+
       # make sure we have also the pause image fetched
       if !defined(Podman::Image["${user}-pause"]) {
         podman::image {
@@ -274,6 +295,8 @@ define podman::container (
             homedir => $real_homedir,
         } -> Systemd::Unit_file["${unique_name}.service"]
       }
+    } else {
+      $pod_name = undef
     }
 
     if !empty($publish_socket) and !defined(Podman::Image["${user}-socat"]) {
@@ -341,6 +364,26 @@ define podman::container (
       "${name}-image-lifecycle":
         target  => "/etc/cron.daily/podman-${user}-image-lifecycle.sh",
         content => template('podman/user-image-lifecycle.erb');
+    }
+    $cron_jobs.each |$cron_name,$cron_vals| {
+      $timer_params = $podman::cron_timer_defaults.merge($cron_vals.filter |$i| { $i[0] in ['on_calendar', 'randomize_delay_sec'] })
+      $service_params = {
+        cron_name       => $cron_name,
+        container_name  => $sanitised_con_name,
+        service_name    => $unique_name,
+        uid             => $uid,
+        user            => $user,
+        group           => $real_group,
+        homedir         => $real_homedir,
+        pod_name        => $pod_name,
+        trigger_restart => false,
+      }.merge($vron_vals.filter |$i| { $i[0] in ['cmd','trigger_restart'] })
+      Systemd::Timer["${unique_name}-${cron_name}.timer"] {
+        timer_content   => epp('podman/cron/cron.timer.epp', $timer_params),
+        service_content => template('podman/cron/cron.service.epp', $service_params),
+        active          => true,
+        enable          => true,
+      }
     }
   }
 }
