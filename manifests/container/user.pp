@@ -1,5 +1,5 @@
 # manages a user that runs a container
-define podman::container::user(
+define podman::container::user (
   Variant[String[1],Integer]
                             $uid,
   Stdlib::Compat::Absolute_Path
@@ -11,13 +11,13 @@ define podman::container::user(
   String[1]                 $group        = $name,
   Boolean                   $managehome   = true,
   Boolean                   $manage_user  = true,
-){
-  file{
+) {
+  file {
     "/var/lib/containers/users/${name}":
       seltype => 'data_home_t',
   }
   if $manage_user and !defined(User::Managed[$name]) {
-    user::managed{
+    user::managed {
       $name:
         ensure       => $ensure,
         uid          => $uid,
@@ -31,12 +31,12 @@ define podman::container::user(
   }
 
   # https://github.com/containers/libpod/issues/4057
-  systemd::tmpfile{
+  systemd::tmpfile {
     "podman_tmp_${name}.conf":
       content => "d /run/pods/${uid} 700 ${name} ${name}\nd /run/pods/${uid}/containers 700 ${name} ${name}";
   }
   $image_lifecycle_cron = "/etc/cron.daily/podman-${name}-image-lifecycle.sh"
-  concat{
+  concat {
     $image_lifecycle_cron:
       ensure => $ensure,
       owner  => root,
@@ -45,7 +45,7 @@ define podman::container::user(
   }
   if $ensure == 'present' {
     User::Managed[$name] -> Concat[$image_lifecycle_cron]
-    concat::fragment{
+    concat::fragment {
       "image-lifecycle-cron-${name}-header":
         target  => $image_lifecycle_cron,
         content => "#!/bin/bash\n",
@@ -56,7 +56,7 @@ define podman::container::user(
         order   => '99';
     }
 
-    file{
+    file {
       "${homedir}/.bash_profile":
         content => "[[ -r ~/.bashrc ]] && . ~/.bashrc\n",
         owner   => 'root',
@@ -67,12 +67,12 @@ define podman::container::user(
         owner   => 'root',
         group   => $group,
         mode    => '0640';
-    } -> File["/var/lib/containers/users/${name}"]{
+    } -> File["/var/lib/containers/users/${name}"] {
       ensure => directory,
       owner  => $name,
       group  => $group,
       mode   => '0751',
-    } -> file{
+    } -> file {
       "/var/lib/containers/users/${name}/storage":
         ensure => directory,
         owner  => $name,
@@ -90,11 +90,11 @@ define podman::container::user(
         group   => $group,
         seltype => 'container_runtime_exec_t',
         mode    => '0640';
-      [ "${homedir}/.local",
+      ["${homedir}/.local",
       "${homedir}/.local/share",
       "${homedir}/.local/share/containers",
       "${homedir}/.config",
-      "${homedir}/.config/containers", ]:
+      "${homedir}/.config/containers",]:
         ensure => directory,
         owner  => $name,
         group  => $group,
@@ -105,15 +105,15 @@ define podman::container::user(
         group   => $group,
         mode    => '0640';
     }
-    File["/var/lib/containers/users/${name}/storage"]{
+    File["/var/lib/containers/users/${name}/storage"] {
       seltype => 'data_home_t',
     }
-    File["/var/lib/containers/users/${name}/bin","/var/lib/containers/users/${name}/data"]{
+    File["/var/lib/containers/users/${name}/bin","/var/lib/containers/users/${name}/data"] {
       purge   => true,
       recurse => true,
       force   => true,
     }
-    exec{
+    exec {
       "init-podman-config-${name}":
         command     => 'podman info',
         creates     => "/var/lib/containers/users/${name}/storage/libpod/bolt_state.db",
@@ -121,30 +121,30 @@ define podman::container::user(
         group       => $group,
         cwd         => $homedir,
         require     => [File["${homedir}/.config/containers"],
-                        Exec[systemd-tmpfiles] ],
+                        Exec['systemd-tmpfiles']],
         environment => ["HOME=${homedir}",
                         "XDG_RUNTIME_DIR=/run/pods/${uid}"],
-    } -> concat{"podman-auth-files-${name}":
+    } -> concat { "podman-auth-files-${name}":
       path   => "/var/lib/containers/users/${name}/data/auth_files.args",
       owner  => 'root',
       group  => $group,
       mode   => '0440',
       notify => Exec["init-podman-auth-file-${name}"];
-    } -> exec{"pre-init-podman-auth-file-${name}":
+    } -> exec { "pre-init-podman-auth-file-${name}":
       command => "bash -c \"touch /var/lib/containers/users/${name}/data/auth.json && chown ${name} /var/lib/containers/users/${name}/data/auth.json\"",
       creates => "/var/lib/containers/users/${name}/data/auth.json",
-    } ~> exec{"init-podman-auth-file-${name}":
+    } ~> exec { "init-podman-auth-file-${name}":
       command     => "bash -c \"/usr/local/bin/container-yaml-auth-to-authfile.rb $(cat /var/lib/containers/users/${name}/data/auth_files.args)\" > /var/lib/containers/users/${name}/data/auth.json",
       user        => $name,
       group       => $group,
       refreshonly => true,
       subscribe   => Concat["podman-auth-files-${name}"],
-    } -> file{"/var/lib/containers/users/${name}/data/auth.json":
+    } -> file { "/var/lib/containers/users/${name}/data/auth.json":
       ensure => file,
       owner  => $name,
       group  => $group,
       mode   => '0600',
-    } -> file{"/run/pods/${uid}/containers/auth.json":
+    } -> file { "/run/pods/${uid}/containers/auth.json":
       # copy for convenience if REGISTRY_AUTH_FILE is not set
       source => "/var/lib/containers/users/${name}/data/auth.json",
       owner  => $name,
@@ -153,15 +153,14 @@ define podman::container::user(
     }
   } else {
     Concat[$image_lifecycle_cron] -> User::Managed[$name]
-    Systemd::Tmpfile["podman_tmp_${name}.conf"]{
+    Systemd::Tmpfile["podman_tmp_${name}.conf"] {
       ensure => absent,
     }
-    File["/var/lib/containers/users/${name}"]{
+    File["/var/lib/containers/users/${name}"] {
       ensure  => absent,
       purge   => true,
       force   => true,
       recurse => true,
     }
   }
-
 }
