@@ -61,7 +61,7 @@ function pod_start() {
     UNIX-LISTEN:/run/pod/<%= port %>,fork,end-close,reuseaddr,mode=<%= mode %> TCP:127.0.0.1:<%= port %>
 
 <% end -%>
-  /usr/bin/podman run --pod pod-<%= @sanitised_con_name %> --name <%= @sanitised_con_name %> \
+  /usr/bin/podman run -d --pod pod-<%= @sanitised_con_name %> --name <%= @sanitised_con_name %> \
 <% Array(@publish).each do |p| -%>
     --publish <%= p %> \
 <% end -%>
@@ -106,6 +106,13 @@ end -%>
 <% end -%>
     <%= @image %> \
     <% if @command %> <%= @command %><% end %>
+
+    ret=$?
+    if [ $ret -gt 0 ]; then
+      echo "Error while starting container <%= @sanitised_con_name %>"
+      exit $ret
+    fi
+    cp -f "$(/usr/bin/podman container inspect <%= @sanitised_con_name %> -f '{{.ConmonPidFile}}')" "${XDG_RUNTIME_DIR}/<%= @unique_name %>.pid"
 }
 
 if [ "$1" == 'stop' ]; then

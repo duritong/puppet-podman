@@ -3,9 +3,10 @@ Description=Container <%= @name %>
 After=network.target
 
 [Service]
-Type=simple
+Type=forking
 KillMode=none
 Restart=on-failure
+PIDFile=/run/pods/<%= @uid %>/<%= @unique_name %>.pid
 
 User=<%= @user %>
 Group=<%= @real_group %>

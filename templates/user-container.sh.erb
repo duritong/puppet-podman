@@ -33,7 +33,7 @@ function container_start() {
     fi
   fi
   echo "Starting Container <%= @sanitised_con_name %>"
-  /usr/bin/podman run --name <%= @sanitised_con_name %> \
+  /usr/bin/podman run -d --name <%= @sanitised_con_name %> \
 <% Array(@publish).each do |p| -%>
     --publish <%= p %> \
 <% end -%>
@@ -78,6 +78,13 @@ end -%>
 <% end -%>
     <%= @image %> \
     <% if @command %> <%= @command %><% end %>
+
+    ret=$?
+    if [ $ret -gt 0 ]; then
+      echo "Error while starting container <%= @sanitised_con_name %>"
+      exit $ret
+    fi
+    cp -f "$(/usr/bin/podman container inspect <%= @sanitised_con_name %> -f '{{.ConmonPidFile}}')" "${XDG_RUNTIME_DIR}/<%= @unique_name %>.pid"
 }
 
 if [ "$1" == 'stop' ]; then
