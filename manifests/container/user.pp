@@ -125,10 +125,11 @@ define podman::container::user(
         environment => ["HOME=${homedir}",
                         "XDG_RUNTIME_DIR=/run/pods/${uid}"],
     } -> concat{"podman-auth-files-${name}":
-      path  => "/var/lib/containers/users/${name}/data/auth_files.args",
-      owner => 'root',
-      group => $group,
-      mode  => '0440',
+      path   => "/var/lib/containers/users/${name}/data/auth_files.args",
+      owner  => 'root',
+      group  => $group,
+      mode   => '0440',
+      notify => Exec["init-podman-auth-file-${name}"];
     } -> exec{"pre-init-podman-auth-file-${name}":
       command => "bash -c \"touch /var/lib/containers/users/${name}/data/auth.json && chown ${name} /var/lib/containers/users/${name}/data/auth.json\"",
       creates => "/var/lib/containers/users/${name}/data/auth.json",
