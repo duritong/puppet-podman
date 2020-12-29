@@ -356,6 +356,7 @@ define podman::container (
         owner   => 'root',
         group   => $real_group,
         mode    => '0440',
+        notify  => Exec["init-podman-auth-file-${name}"];
     } -> concat::fragment { "podman-auth-files-${user}-${name}":
       target  => "podman-auth-files-${user}", # no newline!
       content => "/var/lib/containers/users/${user}/data/auth-${name}.yaml ",
