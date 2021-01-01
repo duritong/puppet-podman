@@ -52,6 +52,13 @@ function pod_start() {
   elsif !@run_flags['network'].nil? -%>
     --network=<%= @run_flags['network'] %> \
 <% end -%>
+<% if @run_flags['hostname'] -%>
+    --hostname=<%= @run_flags['hostname'] %> \
+<% end -%>
+    --log-driver=<%= @run_flags['log-driver'] || 'journald' %> \
+<% if @run_flags['log-opt'] -%>
+    --log-opt=<%= @run_flags['log-opt'] %> \
+<% end -%>
     --read-only=true \
     --security-opt=no-new-privileges \
 <% if sec_label = vals['security-opt-label-type'] -%>
@@ -74,6 +81,10 @@ function pod_start() {
 end -%>
 <% Array(@_envs).each do |e| -%>
     --env <%= e %> \
+<% end -%>
+    --log-driver=<%= @run_flags['log-driver'] || 'journald' %> \
+<% if @run_flags['log-opt'] -%>
+    --log-opt=<%= @run_flags['log-opt'] %> \
 <% end -%>
 <% if @run_flags['hostname'] -%>
     --hostname=<%= @run_flags['hostname'] %> \

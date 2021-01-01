@@ -47,6 +47,10 @@ function container_start() {
     --volume <%= "#{host_dir}:#{container_dir}" %> \
 <% end
 end -%>
+    --log-driver=<%= @run_flags['log-driver'] || 'journald' %> \
+<% if @run_flags['log-opt'] -%>
+    --log-opt=<%= @run_flags['log-opt'] %> \
+<% end -%>
 <% if @run_flags['hostname'] -%>
     --hostname=<%= @run_flags['hostname'] %> \
 <% end -%>
