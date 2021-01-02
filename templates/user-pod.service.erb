@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 KillMode=none
 RemainAfterExit=yes
-Restart=on-failure
+Restart=always
 
 User=<%= @user %>
 Group=<%= @real_group %>
