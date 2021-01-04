@@ -366,6 +366,9 @@ define podman::container (
         target  => "/etc/cron.daily/podman-${user}-image-lifecycle.sh",
         content => template('podman/user-image-lifecycle.erb');
     }
+    if !empty($cron_jobs) {
+      require systemd::mail_on_failure
+    }
     $cron_jobs.each |$cron_name,$cron_vals| {
       $timer_params = $podman::cron_timer_defaults.merge($cron_vals.filter |$i| { $i[0] in ['on_calendar', 'randomize_delay_sec'] })
       $service_params = {
