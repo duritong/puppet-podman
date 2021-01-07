@@ -1,5 +1,5 @@
 # pulls an image
-define podman::pod_images(
+define podman::pod_images (
   String[1,32]
     $user,
   Integer
@@ -21,7 +21,7 @@ define podman::pod_images(
   # lint:ignore:single_quote_string_with_variables
   $onlyif_cmd_suffix = '| sed \'s/.* image:\s*//\' | while read -r line; do podman images -q "\\${line}" | grep .; done"'
   # lint:endignore
-  Podman::Container::User<| title == $user |> -> exec{"podman_pod_${name}":
+  Podman::Container::User<| title == $user |> -> exec { "podman_pod_${name}":
     command     => "/usr/local/bin/pod-update-image.sh ${pod_yaml}",
     onlyif      => "${onlyif_cmd_prefix} ${pod_yaml} ${onlyif_cmd_suffix}",
     timeout     => 3600,

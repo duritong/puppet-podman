@@ -6,7 +6,7 @@ class podman::selinux {
     value      => on,
     before     => Package['podman'],
   }
-  file{
+  file {
     '/var/lib/containers/selinux':
       ensure  => directory,
       owner   => root,

@@ -23,13 +23,13 @@ run syntax:
   script:
     - bundle exec rake syntax lint metadata_lint check:symlinks check:git_ignore check:dot_underscore check:test_file rubocop
   variables:
-    PUPPET_GEM_VERSION: '~> 6.0'
+    PUPPET_GEM_VERSION: '~> 7.0'
 
-run parallel-spec puppet 6:
+run parallel-spec puppet 7:
   stage: unit
   tags:
     - container
   script:
     - bundle exec rake parallel_spec
   variables:
-    PUPPET_GEM_VERSION: '~> 6.0'
+    PUPPET_GEM_VERSION: '~> 7.0'

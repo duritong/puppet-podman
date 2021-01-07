@@ -1,5 +1,5 @@
 # pulls an image
-define podman::image(
+define podman::image (
   String[1,32]
     $user,
   Integer
@@ -22,7 +22,7 @@ define podman::image(
     $real_group = $user
   }
   # we are using the actual command in unless so it's run always
-  Podman::Container::User<| title == $user |> -> exec{"podman_image_${name}":
+  Podman::Container::User<| title == $user |> -> exec { "podman_image_${name}":
     command     => "/usr/local/bin/container-update-image.sh ${image_str}",
     unless      => "podman images -q ${image_str} | grep .",
     timeout     => 3600,
@@ -32,6 +32,6 @@ define podman::image(
     cwd         => $homedir,
     environment => ["HOME=${homedir}",
                     "XDG_RUNTIME_DIR=/run/pods/${uid}",
-                    "REGISTRY_AUTH_FILE=/var/lib/containers/users/${user}/data/auth.json" ],
+                    "REGISTRY_AUTH_FILE=/var/lib/containers/users/${user}/data/auth.json"],
   }
 }

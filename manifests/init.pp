@@ -45,6 +45,8 @@ class podman (
       source => 'puppet:///modules/podman/image_update.sh';
     '/usr/local/bin/pod-update-image.sh':
       source => 'puppet:///modules/podman/pod_image_update.sh';
+    '/usr/local/bin/manage-user-pod.rb':
+      source => 'puppet:///modules/podman/manage-user-pod.rb';
   }
 
   if $size_container_disk {
