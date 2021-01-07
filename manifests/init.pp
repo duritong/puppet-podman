@@ -83,10 +83,13 @@ class podman (
   }
 
   if $use_rkhunter {
+    # https://github.com/relud/puppet-lint-strict_indent-check/issues/20
+    # lint:ignore:strict_indent
     $content = @(EOF)
 ALLOWDEVFILE="/dev/shm/libpod_lock"
 ALLOWDEVFILE="/dev/shm/libpod_rootless_lock_*"
 | EOF
+# lint:endignore
     rkhunter::local_conf {
       'podman':
         content => $content,

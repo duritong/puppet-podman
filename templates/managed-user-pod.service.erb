@@ -1,0 +1,60 @@
+[Unit]
+Description=User Pod <%= @name %>
+After=network.target
+
+[Service]
+Type=forking
+KillMode=none
+Restart=always
+PIDFile=/run/pods/<%= @uid %>/<%= @unique_name %>.pid
+
+User=<%= @user %>
+Group=<%= @real_group %>
+
+Environment="XDG_RUNTIME_DIR=/run/pods/<%= @uid %>" "REGISTRY_AUTH_FILE=/var/lib/containers/users/<%= @user %>/data/auth.json"
+
+SyslogIdentifier=<%= @unique_name %>
+
+<% unless @run_flags['skip_image_pull'] -%>
+ExecStartPre=-/usr/local/bin/pod-update-image.sh <%= @pod_yaml_path %>
+<% end -%>
+ExecStartPre=-/usr/bin/podman pod rm -f <%= @sanitised_con_name %>
+ExecStart=/usr/local/bin/manage-user-pod.rb start <%= @pod_yaml_path %> <%= @system_pod_yaml_path %>
+ExecStop=-/usr/bin/podman pod stop <%= @sanitised_con_name %>
+ExecStop=-/usr/bin/podman pod rm -f <%= @sanitised_con_name %>
+
+<% if @configuration['systemd'] -%>
+<%= @configuration['systemd'].map{|k,v| "#{k}=#{v}" }.join("\n") %>
+
+<% end -%>
+# security settings
+PrivateTmp=true
+<% if @real_homedir !~ /^\/home\// -%>
+ProtectHome=true
+InaccessibleDirectories=/home
+<% end -%>
+
+ProtectSystem=full
+# to be migrated once in EL7
+# ProtectSystem=strict
+
+# not yet available
+# to be migrated once in EL7
+#PrivateUsers=true
+#ProtectKernelTunables=true
+#ProtectKernelModules=true
+#ProtectControlGroups=yes
+
+ReadOnlyDirectories=/
+ReadWriteDirectories=<%= @real_homedir %>
+ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/run/
+ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/storage/
+ReadWriteDirectories=/run/pods/<%= @uid %>/
+<% @real_volumes.each do |host_dir,container_dir|
+  if container_dir =~ /.*:rw(,Z)?$/ -%>
+ReadWriteDirectories=<%= host_dir %>
+<% end
+end -%>
+
+[Install]
+WantedBy=multi-user.target

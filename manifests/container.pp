@@ -12,7 +12,7 @@ define podman::container (
     $group            = undef,
   Enum['present','absent']
     $ensure           = 'present',
-  Enum['pod','container']
+  Enum['userpod','pod','container']
     $deployment_mode  = 'container',
   String
     $container_name   = $name,
@@ -20,13 +20,15 @@ define podman::container (
     $command          = undef,
   Optional[String]
     $pod_file         = undef,
+  Boolean
+    $replace_pod_file = true,
   Array[Pattern[/\A(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])){3}:)?\d+:\d+(\/(tcp|udp))?\z/]]
     $publish          = [],
   Hash[Integer[1,65535], Hash]
     $publish_socket   = {},
   Array[Pattern[/^[a-zA-Z0-9_]+=.+$/]]
     $envs             = [],
-  Array[Variant[Integer,Pattern[/^\d+(\/(tcp|udp))?$/]]]
+  Array[Variant[Integer[1,65535],Pattern[/^\d+(\/(tcp|udp))?$/]]]
     $publish_firewall = [],
   Variant[Hash[Variant[Stdlib::Unixpath, String[1]],
     Stdlib::Unixpath],Array[Pattern[/^\/.*:\/[^:]*(:(ro|rw|Z)(,Z)?)?/]]]
@@ -144,29 +146,81 @@ define podman::container (
     $_envs = []
   }
 
-  if $deployment_mode == 'pod' {
-    if $pod_file {
-      $pod_yaml_path = "/var/lib/containers/users/${user}/data/pod-${sanitised_con_name}.yaml"
+  if $deployment_mode in ['userpod', 'pod'] {
+    if !$pod_file {
+      fail('Requires parameter pod_file if deploying as userpod or pod')
+    }
+    if 'config_directory' in $configuration {
+      $pod_yaml_dir = $configuration['config_directory']
+    } else {
+      $pod_yaml_dir = "/var/lib/containers/users/${user}"
+    }
+    $pod_yaml_path = "${pod_yaml_dir}/pod-${sanitised_con_name}.yaml"
+
+    file {
+      $pod_yaml_path:
+        ensure  => $ensure;
+    }
+    if $deployment_mode == 'userpod' {
+      $system_pod_yaml_path = "${pod_yaml_dir}/system-${sanitised_con_name}.yaml"
       file {
-        $pod_yaml_path:
-          owner  => 'root',
-          group  => $real_gid,
-          mode   => '0640',
-          notify => Systemd::Unit_file["${unique_name}.service"],
-          before => Podman::Pod_images[$name];
+        $system_pod_yaml_path:
+          ensure  => $ensure;
       }
+    }
+    if $ensure == 'present' {
       if $pod_file =~ /puppet:\/\// {
+          $pod_file_content = file($pod_file)
+      } elsif "\n" in $pod_file {
+        # if it's a multiline file, we
+        # assume, it's already the whole file
+        # otherwise a path to a template
+          $pod_file_content = $pod_file
+      } else {
+        $pod_file_content = template($pod_file)
+      }
+      File[$pod_yaml_path] {
+        content => Sensitive(trocla::gsub($pod_file_content, { prefix => "container_${name}_", })),
+        replace => $replace_pod_file,
+        group   => $real_gid,
+        mode    => '0640',
+        notify  => Systemd::Unit_file["${unique_name}.service"],
+        before  => Podman::Pod_images[$name],
+      }
+      if $deployment_mode == 'userpod' {
         File[$pod_yaml_path] {
-          source => $pod_file,
+          owner => $user,
+        }
+        $system_pod_config = {
+          volume_base_dir   => $real_homedir,
+          container_env_dir => $pod_yaml_dir,
+          logging           => { 'log-driver' => 'journald', 'log-opt' => { 'tag' => $unique_name } },
+        } + pick($configuration['system_pod_config'],{}) + {
+          socket_ports  => $publish_socket,
+          exposed_ports => $publish_firewall,
+          pidfile       => "/run/pods/${uid}/${unique_name}.pid",
+          name          => $sanitised_con_name,
+          selinux_label => $run_flags['security-opt-label-type'],
+        }
+        File[$system_pod_yaml_path] {
+          content => epp('podman/userpod-system.yaml.epp', $system_pod_config),
+          owner   => 'root',
+          group   => $real_gid,
+          mode    => '0640',
+          notify  => Systemd::Unit_file["${unique_name}.service"],
         }
       } else {
         File[$pod_yaml_path] {
-          content => template($pod_file),
+          owner => 'root',
         }
       }
     }
 
-    $systemd_unit_file = 'podman/user-pod.service.erb'
+    if $deployment_mode == 'userpod' {
+      $systemd_unit_file = 'podman/managed-user-pod.service.erb'
+    } else {
+      $systemd_unit_file = 'podman/user-pod.service.erb'
+    }
   } else {
     file {
       "/var/lib/containers/users/${user}/bin/${unique_name}.sh":
@@ -340,7 +394,6 @@ define podman::container (
         $_k = "${real_homedir}/${k}"
       }
       if 'content' in $v and $v['content'] =~ /%%TROCLA_/ {
-        $trocla_data = $v['content']
         $_v = $v.merge( { content => Sensitive(trocla::gsub($v['content'], { prefix => "container_${name}_", })) })
       } else {
         $_v = $v

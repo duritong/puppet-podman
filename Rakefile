@@ -73,3 +73,5 @@ Gemfile:
 EOM
   end
 end
+
+task :ci => %w{syntax lint metadata_lint check:symlinks check:git_ignore check:dot_underscore check:test_file rubocop parallel_spec}

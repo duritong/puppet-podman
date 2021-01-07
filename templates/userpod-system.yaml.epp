@@ -1,0 +1,58 @@
+<%| String $name,
+    Stdlib::Unixpath $volume_base_dir,
+    Optional[Stdlib::Unixpath] $container_env_dir = undef,
+    Boolean $volume_containers_gid_share = true,
+    Hash[Pattern[/^[A-Za-z0-9\-_\.]+$/],Hash] $containers = {},
+    Hash[Integer[1,65535], Hash] $socket_ports,
+    Array[Variant[Integer[1,65535],Pattern[/^\d+(\/(tcp|udp))?$/]]] $exposed_ports,
+    Stdlib::Unixpath $pidfile,
+    Struct[ { 'log-driver' => Enum['journald','k8s-file', 'none'], 'log-opt' => Struct[ {
+      path => Optional[Stdlib::Unixpath],
+      'max-size' => Optional[Pattern[/^\d+mb/]],
+      tag => Optional[Pattern[/^[A-Za-z0-9\-_\.]+$/]],
+    } ] } ] $logging = { 'log-driver' => 'journald', 'log-opt' => { 'tag' => $unique_name } },
+    Optional[Enum['auto', 'keep-id', 'host', 'private']] $userns = undef,
+    Optional[Enum['isolated','host']] $network_mode = undef,
+    Optional[String] $selinux_label = undef,
+|%>
+name: '<%= $name %>'
+volume_base_dir: '<%= $volume_base_dir %>'
+volume_containers_gid_share: <%= $volume_containers_gid_share %>
+<% if $container_env_dir { -%>
+container_env_path: <%= $container_env_dir %>
+<% }
+$socket_ports.keys.sort.each |$port| {
+  if $port in $socket_ports { -%>
+  <%= $port %>: {}
+<% } else { -%>
+  <%= $port %>: {}
+<%   ['dir','mode'].each |$k| {
+      if $k in $socket_ports[$port] { -%>
+    <%= $k %>: <%= $socket_ports[$port][$k] %>
+<%    }
+    }
+  }
+} -%>
+exposed_ports: [<%= $exposed_ports.join(', ') %>]
+<% if !empty($containers) { -%>
+containers:
+<%= $containers.to_yaml.regsubst(/^/, '  ') %>
+<% } -%>
+pidfile: '<%= $pidfile %>'
+logging:
+  'log-driver': <%= $logging['log-driver'] %>
+<% if $logging['log-driver'] { -%>
+  'log-opt':
+<%  $logging['log-driver'].each |$k,$v| { -%>
+    '<%= $k %>': '<%= $v %>'
+<% }
+}
+if $selinux_label { -%>
+selinux_label: <%= $selinux_label %>
+<% }
+if $userns { -%>
+userns: <%= $userns %>
+<% }
+if $network_mode { -%>
+network_mode: <%= $network_mode %>
+<% } -%>

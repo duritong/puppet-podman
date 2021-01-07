@@ -9,14 +9,19 @@ fixtures:
     mount_core: "puppetlabs/mount_core"
     sysctl: "duritong/sysctl"
     systemd: "camptocamp/systemd"
+    logrotate: "puppet/logrotate"
   repositories:
     disks:
       repo: 'https://code.immerda.ch/immerda/puppet-modules/disks.git'
     rkhunter:
       repo: 'https://code.immerda.ch/immerda/puppet-modules/rkhunter.git'
+    rsyslog:
+      repo: 'https://code.immerda.ch/immerda/puppet-modules/rsyslog.git'
     selinux:
       repo: 'https://code.immerda.ch/immerda/puppet-modules/selinux.git'
     user:
       repo: 'https://code.immerda.ch/immerda/puppet-modules/user.git'
+    trocla:
+      repo: 'https://code.immerda.ch/immerda/puppet-modules/trocla.git'
     yum:
       repo: 'https://code.immerda.ch/immerda/puppet-modules/yum.git'
