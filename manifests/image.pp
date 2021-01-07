@@ -1,15 +1,10 @@
 # pulls an image
 define podman::image (
-  String[1,32]
-    $user,
-  Integer
-    $uid,
-  Stdlib::Compat::Absolute_Path
-    $homedir,
-  Pattern[/^[\S]*$/]
-    $image = $title,
-  Optional[String[1,32]]
-    $group = undef,
+  String[1,32] $user,
+  Integer $uid,
+  Stdlib::Compat::Absolute_Path $homedir,
+  Pattern[/^[\S]*$/] $image = $title,
+  Optional[String[1,32]] $group = undef,
 ) {
   if $image =~ /:/ {
     $image_str = $image
@@ -22,6 +17,7 @@ define podman::image (
     $real_group = $user
   }
   # we are using the actual command in unless so it's run always
+  # lint:ignore:strict_indent
   Podman::Container::User<| title == $user |> -> exec { "podman_image_${name}":
     command     => "/usr/local/bin/container-update-image.sh ${image_str}",
     unless      => "podman images -q ${image_str} | grep .",
@@ -34,4 +30,5 @@ define podman::image (
                     "XDG_RUNTIME_DIR=/run/pods/${uid}",
                     "REGISTRY_AUTH_FILE=/var/lib/containers/users/${user}/data/auth.json"],
   }
+  # lint:endignore
 }

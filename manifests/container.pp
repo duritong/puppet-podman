@@ -1,58 +1,31 @@
 # manages a running container
 define podman::container (
-  String[1,32]
-    $user,
-  Variant[String[1],Integer]
-    $uid,
-  Variant[String[1],Integer]
-    $gid,
-  Optional[Pattern[/^[\S]*$/]]
-    $image            = undef,
-  Optional[String[1]]
-    $group            = undef,
-  Enum['present','absent']
-    $ensure           = 'present',
-  Enum['userpod','pod','container']
-    $deployment_mode  = 'container',
-  String
-    $container_name   = $name,
-  Optional[String]
-    $command          = undef,
-  Optional[String]
-    $pod_file         = undef,
-  Boolean
-    $replace_pod_file = true,
-  Array[Pattern[/\A(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])){3}:)?\d+:\d+(\/(tcp|udp))?\z/]]
-    $publish          = [],
-  Hash[Integer[1,65535], Hash]
-    $publish_socket   = {},
-  Array[Pattern[/^[a-zA-Z0-9_]+=.+$/]]
-    $envs             = [],
-  Array[Variant[Integer[1,65535],Pattern[/^\d+(\/(tcp|udp))?$/]]]
-    $publish_firewall = [],
-  Variant[Hash[Variant[Stdlib::Unixpath, String[1]],
-    Stdlib::Unixpath],Array[Pattern[/^\/.*:\/[^:]*(:(ro|rw|Z)(,Z)?)?/]]]
-    $volumes          = {},
-  Hash
-    $run_flags        = {},
-  Optional[Stdlib::Unixpath]
-    $homedir          = undef,
-  Boolean
-    $manageuserhome   = true,
-  Boolean
-    $manage_user      = true,
-  Boolean
-    $use_rsyslog      = true,
-  Hash[Pattern[/^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])(:\d+)?$/],Struct[{ user => Pattern[/^[a-zA-Z0-9_\.]+$/], password => Pattern[/^[a-zA-Z0-9\|\+\.\*\%\_]+$/], }]]
-    $auth             = {},
-  Hash[Variant[Stdlib::Unixpath, String[1]], Struct[{ content => Optional[String], source => Optional[String], ensure => Optional[Enum['directory','file']], replace => Optional[Boolean], owner => Optional[Variant[String,Integer]], mode => Optional[Stdlib::Filemode] }]]
-    $user_files       = {},
-  Hash[Pattern[/^[a-zA-Z0-9_\-]+$/],Struct[{ ensure => Optional[Enum['present','absent']], cmd => String[1], on_calendar => Optional[String], randomize_delay_sec => Optional[String], trigger_restart => Optional[Boolean], }]]
-    $cron_jobs        = {},
-  Stdlib::Unixpath
-    $logpath          = '/var/log/containers',
-  Hash
-    $configuration    = {},
+  String[1,32] $user,
+  Variant[String[1],Integer] $uid,
+  Variant[String[1],Integer] $gid,
+  Optional[Pattern[/^[\S]*$/]] $image = undef,
+  Optional[String[1]] $group = undef,
+  Enum['present','absent'] $ensure = 'present',
+  Enum['userpod','pod','container'] $deployment_mode = 'container',
+  String $container_name = $name,
+  Optional[String] $command = undef,
+  Optional[String] $pod_file = undef,
+  Boolean $replace_pod_file = true,
+  Podman::Publish $publish = [],
+  Hash[Integer[1,65535], Hash] $publish_socket = {},
+  Array[Pattern[/^[a-zA-Z0-9_]+=.+$/]] $envs = [],
+  Array[Variant[Integer[1,65535],Pattern[/^\d+(\/(tcp|udp))?$/]]] $publish_firewall = [],
+  Podman::Volumes $volumes = {},
+  Hash $run_flags = {},
+  Optional[Stdlib::Unixpath] $homedir = undef,
+  Boolean $manageuserhome = true,
+  Boolean $manage_user = true,
+  Boolean $use_rsyslog = true,
+  Podman::Auth $auth = {},
+  Podman::UserFiles $user_files = {},
+  Podman::CronJobs $cron_jobs = {},
+  Stdlib::Unixpath $logpath = '/var/log/containers',
+  Hash $configuration = {},
 ) {
   if $homedir {
     $real_homedir = $homedir
@@ -75,22 +48,22 @@ define podman::container (
 
   $_real_volumes = $volumes ? {
     Array   => Hash($volumes.map |$s| {
-      $v = split($s,':')
-      if $v[2] {
-        [$v[0], join([$v[1],$v[2]],':')]
-      } else {
-        [$v[0], $v[1]]
-      }
+        $v = split($s,':')
+        if $v[2] {
+          [$v[0], join([$v[1],$v[2]],':')]
+        } else {
+          [$v[0], $v[1]]
+        }
     }),
     default => $volumes,
   }
   $real_volumes = Hash($_real_volumes.map |$k,$v| {
-    if $k =~ Stdlib::Unixpath or $k =~ /^tmpfs/ {
-      $_k = $k
-    } else {
-      $_k = "${real_homedir}/${k}"
-    }
-    [$_k, $v]
+      if $k =~ Stdlib::Unixpath or $k =~ /^tmpfs/ {
+        $_k = $k
+      } else {
+        $_k = "${real_homedir}/${k}"
+      }
+      [$_k, $v]
   })
 
   if $use_rsyslog {
@@ -170,12 +143,12 @@ define podman::container (
     }
     if $ensure == 'present' {
       if $pod_file =~ /puppet:\/\// {
-          $pod_file_content = file($pod_file)
+        $pod_file_content = file($pod_file)
       } elsif "\n" in $pod_file {
         # if it's a multiline file, we
         # assume, it's already the whole file
         # otherwise a path to a template
-          $pod_file_content = $pod_file
+        $pod_file_content = $pod_file
       } else {
         $pod_file_content = template($pod_file)
       }

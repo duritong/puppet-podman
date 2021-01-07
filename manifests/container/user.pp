@@ -1,16 +1,13 @@
 # manages a user that runs a container
 define podman::container::user (
-  Variant[String[1],Integer]
-                            $uid,
-  Stdlib::Compat::Absolute_Path
-                            $homedir,
-  Variant[String[1],Integer]
-                            $gid          = 'uid',
-  Enum['present','absent']  $ensure       = 'present',
-  Stdlib::Filemode          $homedir_mode = '0750',
-  String[1]                 $group        = $name,
-  Boolean                   $managehome   = true,
-  Boolean                   $manage_user  = true,
+  Variant[String[1],Integer] $uid,
+  Stdlib::Compat::Absolute_Path $homedir,
+  Variant[String[1],Integer] $gid = 'uid',
+  Enum['present','absent'] $ensure = 'present',
+  Stdlib::Filemode $homedir_mode = '0750',
+  String[1] $group = $name,
+  Boolean $managehome = true,
+  Boolean $manage_user = true,
 ) {
   file {
     "/var/lib/containers/users/${name}":
@@ -90,11 +87,13 @@ define podman::container::user (
         group   => $group,
         seltype => 'container_runtime_exec_t',
         mode    => '0640';
+      # lint:ignore:strict_indent
       ["${homedir}/.local",
       "${homedir}/.local/share",
       "${homedir}/.local/share/containers",
       "${homedir}/.config",
       "${homedir}/.config/containers",]:
+      # lint:endignore
         ensure => directory,
         owner  => $name,
         group  => $group,
@@ -120,10 +119,11 @@ define podman::container::user (
         user        => $name,
         group       => $group,
         cwd         => $homedir,
+        # lint:ignore:strict_indent
         require     => [File["${homedir}/.config/containers"],
                         Exec['systemd-tmpfiles']],
-        environment => ["HOME=${homedir}",
-                        "XDG_RUNTIME_DIR=/run/pods/${uid}"],
+        # lint:endignore
+        environment => ["HOME=${homedir}", "XDG_RUNTIME_DIR=/run/pods/${uid}"],
     } -> concat { "podman-auth-files-${name}":
       path   => "/var/lib/containers/users/${name}/data/auth_files.args",
       owner  => 'root',
