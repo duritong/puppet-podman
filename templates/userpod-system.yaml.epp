@@ -10,7 +10,7 @@
       path => Optional[Stdlib::Unixpath],
       'max-size' => Optional[Pattern[/^\d+mb/]],
       tag => Optional[Pattern[/^[A-Za-z0-9\-_\.]+$/]],
-    } ] } ] $logging = { 'log-driver' => 'journald', 'log-opt' => { 'tag' => $unique_name } },
+    } ] } ] $logging = { 'log-driver' => 'journald', log-opt => {} },
     Optional[Enum['auto', 'keep-id', 'host', 'private']] $userns = undef,
     Optional[Enum['isolated','host']] $network_mode = undef,
     Optional[String] $selinux_label = undef,

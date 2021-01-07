@@ -1,0 +1,8 @@
+<%| Podman::Auth $auth,
+|%>
+---
+<% $auth.each |$reg,$data| { -%>
+'<%= $reg %>':
+  user: '<%= $data['user'] %>'
+  password: '<%= trocla::gsub($data['password'], { 'prefix' => "container_#{@name}_" }) %>'
+<% } -%>

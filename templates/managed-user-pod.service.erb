@@ -19,7 +19,7 @@ SyslogIdentifier=<%= @unique_name %>
 ExecStartPre=-/usr/local/bin/pod-update-image.sh <%= @pod_yaml_path %>
 <% end -%>
 ExecStartPre=-/usr/bin/podman pod rm -f <%= @sanitised_con_name %>
-ExecStart=/usr/local/bin/manage-user-pod.rb start <%= @pod_yaml_path %> <%= @system_pod_yaml_path %>
+ExecStart=/usr/local/bin/manage-user-pod.rb start <%= @pod_yaml_path %> <%= @pod_system_yaml_path %>
 ExecStop=-/usr/bin/podman pod stop <%= @sanitised_con_name %>
 ExecStop=-/usr/bin/podman pod rm -f <%= @sanitised_con_name %>
 

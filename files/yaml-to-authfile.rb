@@ -1,4 +1,14 @@
 #!/opt/puppetlabs/puppet/bin/ruby
+#
+# Iterate over each file passed as
+# argument and merge each auth into
+# a containers auth file
+# inut is yaml, like:
+# registry.example.com:
+#   user: myself
+#   password: super_secret
+# In case of double registries in
+# different files: entry in earlier file wins
 
 require 'yaml'
 require 'json'

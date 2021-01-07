@@ -17,6 +17,7 @@ define podman::container (
   Array[Variant[Stdlib::Port,Pattern[/^\d+(\/(tcp|udp))?$/]]] $publish_firewall = [],
   Podman::Volumes $volumes = {},
   Hash $run_flags = {},
+  Hash $pod_system_config = {},
   Optional[Stdlib::Unixpath] $homedir = undef,
   Boolean $manageuserhome = true,
   Boolean $manage_user = true,
@@ -135,9 +136,9 @@ define podman::container (
         ensure  => $ensure;
     }
     if $deployment_mode == 'userpod' {
-      $system_pod_yaml_path = "${pod_yaml_dir}/system-${sanitised_con_name}.yaml"
+      $pod_system_yaml_path = "${pod_yaml_dir}/system-${sanitised_con_name}.yaml"
       file {
-        $system_pod_yaml_path:
+        $pod_system_yaml_path:
           ensure  => $ensure;
       }
     }
@@ -164,19 +165,19 @@ define podman::container (
         File[$pod_yaml_path] {
           owner => $user,
         }
-        $system_pod_config = {
+        $_pod_system_config = {
           volume_base_dir   => $real_homedir,
           container_env_dir => $pod_yaml_dir,
           logging           => { 'log-driver' => 'journald', 'log-opt' => { 'tag' => $unique_name } },
-        } + pick($configuration['system_pod_config'],{}) + {
+        } + $pod_system_config + {
           socket_ports  => $publish_socket,
           exposed_ports => $publish_firewall,
           pidfile       => "/run/pods/${uid}/${unique_name}.pid",
           name          => $sanitised_con_name,
           selinux_label => $run_flags['security-opt-label-type'],
         }
-        File[$system_pod_yaml_path] {
-          content => epp('podman/userpod-system.yaml.epp', $system_pod_config),
+        File[$pod_system_yaml_path] {
+          content => epp('podman/userpod-system.yaml.epp', $_pod_system_config),
           owner   => 'root',
           group   => $real_gid,
           mode    => '0640',
@@ -379,17 +380,15 @@ define podman::container (
           * => $user_files_defaults.merge($_v),
       }
     }
-    file {
-      "/var/lib/containers/users/${user}/data/auth-${name}.yaml":
-        content => template('podman/auth-file.yaml.erb'),
-        owner   => 'root',
-        group   => $real_group,
-        mode    => '0440',
-        notify  => Exec["init-podman-auth-file-${user}"];
-    } -> concat::fragment { "podman-auth-files-${user}-${name}":
-      target  => "podman-auth-files-${user}", # no newline!
-      content => "/var/lib/containers/users/${user}/data/auth-${name}.yaml ",
+
+    podman::container::auth {
+      $name:
+        path  => "/var/lib/containers/users/${user}/data/auth-${name}.yaml",
+        user  => $user,
+        group => $real_group,
+        auth  => $auth,
     }
+
     concat::fragment {
       "${name}-image-lifecycle":
         target  => "/etc/cron.daily/podman-${user}-image-lifecycle.sh",

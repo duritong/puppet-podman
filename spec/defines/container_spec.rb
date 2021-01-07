@@ -19,6 +19,21 @@ describe 'podman::container' do
       it { is_expected.to compile }
     end
 
+    context 'with auth' do
+      let(:params) do
+        super().merge(
+          auth: {
+            'registry.example.com' => {
+              user: 'myuser',
+              password: 'super_secret',
+            },
+          }
+        )
+      end
+
+      it { is_expected.to compile }
+    end
+
     context 'as userpod' do
       let(:params) do
         super().merge(

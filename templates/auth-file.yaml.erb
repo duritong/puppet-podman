@@ -1,6 +1,0 @@
----
-<% @auth.each do |reg,data| -%>
-'<%= reg %>':
-  user: '<%= data['user'] %>'
-  password: '<%= scope.call_function('trocla::gsub',[data['password'], 'prefix' => "container_#{@name}_" ]) %>'
-<% end -%>
