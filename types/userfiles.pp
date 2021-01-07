@@ -1,4 +1,4 @@
-type Podman::UserFiles = Hash[
+type Podman::Userfiles = Hash[
   Variant[Stdlib::Unixpath, String[1]],
   Struct[{
       content    => Optional[String],

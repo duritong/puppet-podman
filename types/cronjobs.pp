@@ -1,4 +1,4 @@
-type Podman::CronJobs = Hash[
+type Podman::Cronjobs = Hash[
   Pattern[/^[a-zA-Z0-9_\-]+$/],
   Struct[{
       ensure              => Optional[Enum['present','absent']],
