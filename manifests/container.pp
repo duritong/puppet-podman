@@ -2,12 +2,12 @@
 define podman::container (
   String[1,32]
     $user,
-  Pattern[/^[\S]*$/]
-    $image,
   Variant[String[1],Integer]
     $uid,
   Variant[String[1],Integer]
     $gid,
+  Optional[Pattern[/^[\S]*$/]]
+    $image            = undef,
   Optional[String[1]]
     $group            = undef,
   Enum['present','absent']
@@ -313,6 +313,9 @@ define podman::container (
       }
     }
     if $deployment_mode == 'container' {
+      if !$image {
+        fail('Parameter $image is required for container_deployment mode!')
+      }
       podman::image {
         $name:
           user    => $user,

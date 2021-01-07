@@ -19,14 +19,14 @@ describe 'podman::container' do
       let(:params) { super().merge(
         deployment_mode: 'userpod',
         pod_file: "some\npod",
-      ) }
+      ).tap { |hs| hs.delete(:image) } }
       it { is_expected.to compile }
     end
     context "as pod" do
       let(:params) { super().merge(
         deployment_mode: 'pod',
         pod_file: "some\npod",
-      ) }
+      ).tap { |hs| hs.delete(:image) } }
       it { is_expected.to compile }
     end
   end
