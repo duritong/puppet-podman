@@ -385,10 +385,10 @@ define podman::container (
 
     podman::container::auth {
       $name:
-        path     => "/var/lib/containers/users/${user}/data/auth-${name}.yaml",
-        user     => $user,
-        group    => $real_group,
-        auth     => $auth,
+        path  => "/var/lib/containers/users/${user}/data/auth-${name}.yaml",
+        user  => $user,
+        group => $real_group,
+        auth  => $auth,
     }
 
     concat::fragment {
