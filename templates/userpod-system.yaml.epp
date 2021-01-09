@@ -36,14 +36,18 @@ $socket_ports.keys.sort.each |$port| {
 exposed_ports: [<%= $exposed_ports.join(', ') %>]
 <% if !empty($containers) { -%>
 containers:
-<%= $containers.to_yaml.regsubst(/^/, '  ') %>
-<% } -%>
+<%= $containers.to_yaml.split("\n").each |$n| {
+  if $n != '---' {-%>
+  <%= $n %>
+<%   }
+  }
+} -%>
 pidfile: '<%= $pidfile %>'
 logging:
   'log-driver': <%= $logging['log-driver'] %>
-<% if $logging['log-driver'] { -%>
+<% if $logging['log-opt'] { -%>
   'log-opt':
-<%  $logging['log-driver'].each |$k,$v| { -%>
+<%  $logging['log-opt'].each |$k,$v| { -%>
     '<%= $k %>': '<%= $v %>'
 <% }
 }
