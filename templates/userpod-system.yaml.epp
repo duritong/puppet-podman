@@ -21,15 +21,18 @@ volume_containers_gid_share: <%= $volume_containers_gid_share %>
 <% if $container_env_dir { -%>
 container_env_path: <%= $container_env_dir %>
 <% }
-$socket_ports.keys.sort.each |$port| {
-  if $port in $socket_ports { -%>
+if !empty($socket_ports) { -%>
+socket_ports:
+<%  $socket_ports.keys.sort.each |$port| {
+      if $port in $socket_ports { -%>
   <%= $port %>: {}
-<% } else { -%>
+<%    } else { -%>
   <%= $port %>: {}
 <%   ['dir','mode'].each |$k| {
-      if $k in $socket_ports[$port] { -%>
+        if $k in $socket_ports[$port] { -%>
     <%= $k %>: <%= $socket_ports[$port][$k] %>
-<%    }
+<%      }
+      }
     }
   }
 } -%>
