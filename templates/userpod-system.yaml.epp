@@ -37,7 +37,7 @@ exposed_ports: [<%= $exposed_ports.join(', ') %>]
 <% if !empty($containers) { -%>
 containers:
 <%= $containers.to_yaml.split("\n").each |$n| {
-  if $n != '---' {-%>
+  if $n != '---' { -%>
   <%= $n %>
 <%   }
   }
