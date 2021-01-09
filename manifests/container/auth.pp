@@ -7,11 +7,12 @@ define podman::container::auth (
   String[1] $owner = 'root',
   Stdlib::Filemode $mode = '0440',
   Pattern[/^\d{3}$/] $order = '050',
+  String[1] $con_name = $title,
   Boolean $replace = true,
 ) {
   file {
     $path:
-      content => epp('podman/auth-file.yaml.epp', { auth => $auth }, ),
+      content => epp('podman/auth-file.yaml.epp', { auth => $auth, $name => $con_name }, ),
       replace => $replace,
       owner   => $owner,
       group   => $group,
