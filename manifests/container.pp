@@ -150,6 +150,8 @@ define podman::container (
         # assume, it's already the whole file
         # otherwise a path to a template
         $pod_file_content = $pod_file
+      } elsif $pod_file =~ /\.epp$/ {
+        $pod_file_content = epp($pod_file)
       } else {
         $pod_file_content = template($pod_file)
       }
