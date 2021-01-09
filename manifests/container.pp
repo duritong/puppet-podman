@@ -168,7 +168,7 @@ define podman::container (
           owner => $user,
         }
         $_pod_system_config = {
-          volume_base_dir   => $real_homedir,
+          volumes_base_dir  => $real_homedir,
           container_env_dir => $pod_yaml_dir,
           logging           => { 'log-driver' => 'journald', 'log-opt' => { 'tag' => $unique_name } },
         } + $pod_system_config + {

@@ -67,7 +67,7 @@ def parse_system_controls!(system_controls)
   err("Unsupported userns '#{system_controls['userns']}'!") if system_controls['userns'] && !%w{auto keep-id host private}.include?(system_controls['userns'])
 
   system_controls['containers'] ||= {}
-  system_controls['volume_containers_gid_share'] ||= true
+  system_controls['volumes_containers_gid_share'] ||= true
   system_controls['socket_ports'] ||= {}
   system_controls['socket_ports'] = system_controls['socket_ports'].keys.each_with_object({}) do |port,res|
     port_vals = system_controls['socket_ports'][port]
@@ -196,9 +196,9 @@ def parse_containers(containers, volumes, pod_specs, system_controls)
       err("Running container #{con['name']} as root is not allowed!")
     end
 
-    # if we have volumes, and volume_containers_gid_share is enabled, we should either run as the same GID (either 0 without keep-id or the effective user-id)
+    # if we have volumes, and volumes_containers_gid_share is enabled, we should either run as the same GID (either 0 without keep-id or the effective user-id)
     if !res[con['name']]['volumeMounts'].empty? && \
-        (system_controls['containers'][con['name']]['volume_containers_gid_share'] || system_controls['volume_containers_gid_share'])
+        (system_controls['containers'][con['name']]['volumes_containers_gid_share'] || system_controls['volumes_containers_gid_share'])
       group = if system_controls['userns'] == 'keep-id'
         Process.egid
       else

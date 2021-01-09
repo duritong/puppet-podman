@@ -1,7 +1,7 @@
 <%| String $name,
-    Stdlib::Unixpath $volume_base_dir,
+    Stdlib::Unixpath $volumes_base_dir,
     Optional[Stdlib::Unixpath] $container_env_dir = undef,
-    Boolean $volume_containers_gid_share = true,
+    Boolean $volumes_containers_gid_share = true,
     Hash[Pattern[/^[A-Za-z0-9\-_\.]+$/],Hash] $containers = {},
     Hash[Stdlib::Port, Hash] $socket_ports,
     Array[Variant[Stdlib::Port,Pattern[/^\d+(\/(tcp|udp))?$/]]] $exposed_ports,
@@ -16,8 +16,8 @@
     Optional[String] $selinux_label = undef,
 |%>
 name: '<%= $name %>'
-volume_base_dir: '<%= $volume_base_dir %>'
-volume_containers_gid_share: <%= $volume_containers_gid_share %>
+volumes_base_dir: '<%= $volumes_base_dir %>'
+volumes_containers_gid_share: <%= $volumes_containers_gid_share %>
 <% if $container_env_dir { -%>
 container_env_path: <%= $container_env_dir %>
 <% }
