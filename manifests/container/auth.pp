@@ -12,7 +12,7 @@ define podman::container::auth (
 ) {
   file {
     $path:
-      content => epp('podman/auth-file.yaml.epp', { auth => $auth, $name => $con_name }, ),
+      content => epp('podman/auth-file.yaml.epp', { auth => $auth, name => $con_name }, ),
       replace => $replace,
       owner   => $owner,
       group   => $group,
