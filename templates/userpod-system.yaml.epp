@@ -3,7 +3,7 @@
     Optional[Stdlib::Unixpath] $container_env_dir = undef,
     Boolean $volumes_containers_gid_share = true,
     Hash[Pattern[/^[A-Za-z0-9\-_\.]+$/],Hash] $containers = {},
-    Hash[Stdlib::Port, Hash] $socket_ports,
+    Podman::Socketports $socket_ports,
     Array[Variant[Stdlib::Port,Pattern[/^\d+(\/(tcp|udp))?$/]]] $exposed_ports,
     Stdlib::Unixpath $pidfile,
     Struct[ { 'log-driver' => Enum['journald','k8s-file', 'none'], 'log-opt' => Struct[ {
@@ -28,7 +28,7 @@ socket_ports:
   <%= $port %>: {}
 <%    } else { -%>
   <%= $port %>: {}
-<%   ['dir','mode'].each |$k| {
+<%   ['dir','mode','security-opt-label-type'].each |$k| {
         if $k in $socket_ports[$port] { -%>
     <%= $k %>: <%= $socket_ports[$port][$k] %>
 <%      }

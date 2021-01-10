@@ -275,8 +275,8 @@ def socket_pod_str(name, con_name, port, index, first_con_id, port_vals, system_
     res << " --userns=#{system_controls['userns']}"
   end
   res << " --read-only=true --security-opt=no-new-privileges"
-  if system_controls['selinux_label']
-    res << " --security-opt=label=type:#{system_controls['selinux_label']}.process"
+  if port_vals['security-opt-label-type']
+    res << " --security-opt=label=type:#{port_vals['security-opt-label-type']}.process"
   end
   res << " --log-driver=#{system_controls['logging']['log-driver']}"
   if system_controls['logging']['log-opt']
