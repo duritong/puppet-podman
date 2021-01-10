@@ -318,7 +318,7 @@ def pod_cmd(pod_name, con_name, pod_specs, con_values, first_con_id, volumes, sy
       env_file.puts "#{k}='#{v}'"
     end
     env_file.close
-    res << " --_nv-file #{env_file.path}"
+    res << " --env-file #{env_file.path}"
   end
   con_values['env_files'].each do |f|
     res << " --env-file #{f}"
