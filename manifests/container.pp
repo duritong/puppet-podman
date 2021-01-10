@@ -278,14 +278,16 @@ define podman::container (
         content => template('podman/user-container.sh.erb'),
       }
     } elsif $deployment_mode == 'container' {
+      File["/var/lib/containers/users/${user}/bin/${unique_name}.sh"] {
+        content => template('podman/user-pod.sh.erb'),
+      }
+    }
+    if $deployment_mode in ['container','userpod'] {
       $publish_socket.each |$k,$v| {
         if $v['security-opt-label-type'] {
           require "podman::selinux::policy::${v['security-opt-label-type']}"
           Class["podman::selinux::policy::${v['security-opt-label-type']}"] ~> Systemd::Unit_file["${unique_name}.service"]
         }
-      }
-      File["/var/lib/containers/users/${user}/bin/${unique_name}.sh"] {
-        content => template('podman/user-pod.sh.erb'),
       }
     }
     if $deployment_mode == 'container' {
