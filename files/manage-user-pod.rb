@@ -15,6 +15,7 @@
 require 'yaml'
 require 'json'
 require 'fileutils'
+require 'tempfile'
 
 class String
   def black;         "\e[30m#{self}\e[0m" end
@@ -146,14 +147,14 @@ def parse_containers(containers, volumes, pod_specs, system_controls)
       obj[env['name']] = env['value']
     end
 
-    res[con['name']]['env-files'] = system_controls['containers'][con['name']]['env_files'] || []
-    res[con['name']]['env-files'].each do |f|
+    res[con['name']]['env_files'] = system_controls['containers'][con['name']]['env_files'] || []
+    res[con['name']]['env_files'].each do |f|
       error("Env-file '#{f}' doesn not exist!") unless File.file?(env_file)
     end
     if d = system_controls['container_env_dir']
       env_file = File.join(d,"#{con['name']}.env")
       if File.file?(env_file)
-        res[con['name']]['env-files'] << env_file
+        res[con['name']]['env_files'] << env_file
       end
     end
     Array(con['ports']).each do |port|
@@ -317,7 +318,7 @@ def pod_cmd(pod_name, con_name, pod_specs, con_values, first_con_id, volumes, sy
       env_file.puts "#{k}='#{v}'"
     end
     env_file.close
-    res << " --env-file #{env_file.path}"
+    res << " --_nv-file #{env_file.path}"
   end
   con_values['env_files'].each do |f|
     res << " --env-file #{f}"
