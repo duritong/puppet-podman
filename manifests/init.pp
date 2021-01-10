@@ -34,7 +34,10 @@ class podman (
       require => Package['podman'];
   }
 
-  file {
+  selinux::fcontext {
+    '/usr/local/bin/manage-user-pod\.rb':
+      setype => 'container_runtime_exec_t',
+  } -> file {
     default:
       owner => root,
       group => root,
@@ -46,7 +49,8 @@ class podman (
     '/usr/local/bin/pod-update-image.sh':
       source => 'puppet:///modules/podman/pod_image_update.sh';
     '/usr/local/bin/manage-user-pod.rb':
-      source => 'puppet:///modules/podman/manage-user-pod.rb';
+      seltype => 'container_runtime_exec_t',
+      source  => 'puppet:///modules/podman/manage-user-pod.rb';
   }
 
   if $size_container_disk {
