@@ -30,15 +30,15 @@ socket_ports:
 <%  $socket_ports.keys.sort.each |$port| {
       if empty($socket_ports[$port]) { -%>
   <%= $port %>: {}
-<%    } else {
+<%    } else { -%>
   <%= $port %>:
-        ['dir','mode','security-opt-label-type'].each |$k| {
+<%      ['dir','mode','security-opt-label-type'].each |$k| {
           if $k in $socket_ports[$port] { -%>
     <%= $k %>: <%= $socket_ports[$port][$k] %>
 <%        }
+        }
       }
     }
-  }
 } -%>
 exposed_ports: [<%= $exposed_ports.join(', ') %>]
 <% if !empty($containers) { -%>
