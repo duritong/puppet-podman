@@ -31,6 +31,7 @@ socket_ports:
       if empty($socket_ports[$port]) { -%>
   <%= $port %>: {}
 <%    } else {
+  <%= $port %>:
         ['dir','mode','security-opt-label-type'].each |$k| {
           if $k in $socket_ports[$port] { -%>
     <%= $k %>: <%= $socket_ports[$port][$k] %>
