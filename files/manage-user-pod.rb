@@ -493,6 +493,7 @@ elsif action == 'stop'
       Dir[File.join(system_controls['tmp_dir'],"env-#{system_controls['name']}-*")].each do |env_file|
         File.delete(env_file) if File.file?(env_file)
       end
+    end
     exit 0
   end
 # restart is the same

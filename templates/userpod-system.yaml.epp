@@ -28,14 +28,13 @@ tmp_dir: <%= $tmp_dir %>
 if !empty($socket_ports) { -%>
 socket_ports:
 <%  $socket_ports.keys.sort.each |$port| {
-      if $port in $socket_ports { -%>
+      if empty($socket_ports[$port]) { -%>
   <%= $port %>: {}
-<%    } else { -%>
-  <%= $port %>: {}
-<%   ['dir','mode','security-opt-label-type'].each |$k| {
-        if $k in $socket_ports[$port] { -%>
+<%    } else {
+        ['dir','mode','security-opt-label-type'].each |$k| {
+          if $k in $socket_ports[$port] { -%>
     <%= $k %>: <%= $socket_ports[$port][$k] %>
-<%      }
+<%        }
       }
     }
   }

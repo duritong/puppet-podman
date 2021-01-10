@@ -12,7 +12,7 @@ define podman::container (
   Optional[String] $pod_file = undef,
   Boolean $replace_pod_file = true,
   Podman::Publish $publish = [],
-  Hash[Stdlib::Port, Hash] $publish_socket = {},
+  Podman::Socketports $publish_socket = {},
   Array[Pattern[/^[a-zA-Z0-9_]+=.+$/]] $envs = [],
   Array[Variant[Stdlib::Port,Pattern[/^\d+(\/(tcp|udp))?$/]]] $publish_firewall = [],
   Podman::Volumes $volumes = {},
