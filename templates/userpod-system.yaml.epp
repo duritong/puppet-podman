@@ -1,6 +1,7 @@
 <%| String $name,
     Stdlib::Unixpath $volumes_base_dir,
     Optional[Stdlib::Unixpath] $container_env_dir = undef,
+    Optional[Stdlib::Unixpath] $tmp_dir = undef,
     Boolean $volumes_containers_gid_share = true,
     Hash[Pattern[/^[A-Za-z0-9\-_\.]+$/],Hash] $containers = {},
     Podman::Socketports $socket_ports,
@@ -19,7 +20,10 @@ name: '<%= $name %>'
 volumes_base_dir: '<%= $volumes_base_dir %>'
 volumes_containers_gid_share: <%= $volumes_containers_gid_share %>
 <% if $container_env_dir { -%>
-container_env_path: <%= $container_env_dir %>
+container_env_dir: <%= $container_env_dir %>
+<% }
+if $tmp_dir { -%>
+tmp_dir: <%= $tmp_dir %>
 <% }
 if !empty($socket_ports) { -%>
 socket_ports:

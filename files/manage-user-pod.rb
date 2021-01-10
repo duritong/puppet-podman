@@ -313,7 +313,7 @@ def pod_cmd(pod_name, con_name, pod_specs, con_values, first_con_id, volumes, sy
   end
 
   unless con_values['env'].empty?
-    env_file = Tempfile.new("#{pod_name}-#{con_name}")
+    env_file = Tempfile.new("env-#{pod_name}-#{con_name}", system_controls['tmp_dir'])
     con_values['env'].each do |k,v|
       env_file.puts "#{k}='#{v}'"
     end
@@ -489,6 +489,10 @@ elsif action == 'stop'
     exit 0
   else
     stop_pod(pod_id, system_controls['name'])
+    if system_controls['tmp_dir']
+      Dir[File.join(system_controls['tmp_dir'],"env-#{system_controls['name']}-*")].each do |env_file|
+        File.delete(env_file) if File.file?(env_file)
+      end
     exit 0
   end
 # restart is the same
