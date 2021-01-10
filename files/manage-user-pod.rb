@@ -412,7 +412,7 @@ def start_pod(pod_specs, containers, volumes, system_controls)
   puts
   puts "ALL DONE".green
   if system_controls['pidfile']
-    pid_file = `podman container inspect #{last_con_name} -f '{{.ConmonPidFile}}'`
+    pid_file = `podman container inspect #{last_con_name} -f '{{.ConmonPidFile}}'`.chomp
     i=0
     # might take a while until it's here
     while !File.exist?(pid_file) && i < 10 do
