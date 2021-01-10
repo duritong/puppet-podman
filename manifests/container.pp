@@ -379,7 +379,7 @@ define podman::container (
       }
       file {
         $_k:
-          * => $user_files_defaults.merge($_v),
+          * => $user_files_defaults + $_v,
       }
     }
 
