@@ -315,7 +315,7 @@ def pod_cmd(pod_name, con_name, pod_specs, con_values, first_con_id, volumes, sy
   unless con_values['env'].empty?
     env_file = Tempfile.new("env-#{pod_name}-#{con_name}", system_controls['tmp_dir'])
     con_values['env'].each do |k,v|
-      env_file.puts "#{k}='#{v}'"
+      env_file.puts "#{k}=#{v}"
     end
     env_file.close
     res << " --env-file #{env_file.path}"
