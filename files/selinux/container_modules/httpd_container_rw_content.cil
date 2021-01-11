@@ -1,8 +1,12 @@
 (block httpd_container_rw_content
     (blockinherit container)
     (blockinherit restricted_net_container)
-    (allow process http_port_t ( tcp_socket (  name_bind )))
-    (allow process http_cache_port_t ( tcp_socket (  name_bind )))
+    (allow process http_port_t ( tcp_socket (  name_bind ))) ; 80, 81, 443, 488, 8008, 8009, 8443, 9000
+    (allow process http_cache_port_t ( tcp_socket (  name_bind ))) ; 8080, 8118, 8123, 10001-10010
+    (allow process mysqld_port_t ( tcp_socket (  name_bind ))) ; 3306
+    (allow process postgresql_port_t ( tcp_socket (  name_bind ))) ; 5432
+    (allow process commplex_main_port_t ( tcp_socket (  name_bind ))) ; 5000
+    (allow process gatekeeper_port_t ( tcp_socket (  name_bind ))) ; 7000
     (allow process unreserved_port_t ( tcp_socket (  name_bind )))
     (allow process httpd_log_t ( dir ( open read getattr lock search ioctl add_name remove_name write )))
     (allow process httpd_log_t ( file ( getattr read write append ioctl lock map open create )))
