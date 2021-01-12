@@ -75,7 +75,7 @@ define podman::container (
     } -> logrotate::rule {
       $unique_name:
         ensure       => $ensure,
-        path         => "${logpath}/${unique_name}.log",
+        path         => "${logpath}/${unique_name}*.log",
         compress     => true,
         copytruncate => true,
         dateext      => true,
