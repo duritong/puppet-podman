@@ -14,6 +14,13 @@ class podman (
     randomize_delay_sec => '1d',
   },
 ) {
+  if versioncmp($facts['os']['release']['major'],'8') < 0 {
+    selinux::policy {
+      'podman-base':
+        te_source => 'puppet:///modules/podman/selinux/podman-base.te',
+        before    => Package['podman'],
+    }
+  }
   sysctl::value {
     'user.max_user_namespaces':
       value => '28633',
