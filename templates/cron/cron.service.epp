@@ -16,7 +16,7 @@ After=<%= $service_name %>.service
 OnFailure=status_email_root@%n.service
 
 [Service]
-Type=simple
+Type=oneshot
 User=<%= $user %>
 Group=<%= $group %>
 
