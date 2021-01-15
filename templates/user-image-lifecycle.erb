@@ -1,6 +1,6 @@
 # lifecycle of images for container <%= @name %>
 
-<% if @deployment_mode == 'pod' -%>
+<% if @deployment_mode =~ /pod$/ -%>
 output=$(su - <%= @user %> -s /bin/bash -c "/usr/local/bin/pod-update-image.sh <%= @pod_yaml_path %>")
 <% else -%>
 output=$(su - <%= @user %> -s /bin/bash -c "/usr/local/bin/container-update-image.sh <%= @image %>")
