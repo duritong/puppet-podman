@@ -152,7 +152,7 @@ def parse_containers(containers, volumes, pod_specs, system_controls)
       error("Env-file '#{f}' doesn not exist!") unless File.file?(env_file)
     end
     if d = system_controls['container_env_dir']
-      env_file = File.join(d,"#{con['name']}.env")
+      env_file = File.join(d,"#{system_controls['name']}-#{con['name']}.env")
       if File.file?(env_file)
         res[con['name']]['env_files'] << env_file
       end
