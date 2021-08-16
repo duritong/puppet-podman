@@ -436,6 +436,15 @@ define podman::container (
               logfile_name => "${unique_name}-cron-${cron_name}",
               group        => $real_group,
             }),
+        } -> file {
+          # manage file to workaround
+          # https://access.redhat.com/solutions/3967061
+          # logrotate is handled by the general wildcard
+          "${logpath}/${unique_name}-cron-${cron_name}.log":
+            ensure => file,
+            mode   => '0640',
+            owner  => 'root',
+            group  => $real_group,
         }
       }
     }
