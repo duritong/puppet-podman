@@ -71,7 +71,13 @@ define podman::container (
     rsyslog::confd {
       $unique_name:
         ensure  => $ensure,
-        content => template('podman/rsyslog-confd.erb'),
+        content => epp('podman/rsyslog-confd.epp',{
+          service_name => $unique_name,
+          programname  => $unique_name,
+          logpath      => $logpath,
+          logfile_name => $unique_name,
+          group        => $real_group,
+        }),
     } -> logrotate::rule {
       $unique_name:
         ensure       => $ensure,
@@ -419,6 +425,18 @@ define podman::container (
         service_content => epp('podman/cron/cron.service.epp', $service_params),
         active          => true,
         enable          => true,
+      }
+      if $use_rsyslog {
+        rsyslog::confd {
+          "${unique_name}-cron-${cron_name}":
+            ensure  => $ensure,
+            content => epp('podman/rsyslog-confd.epp',{
+              service_name => $unique_name,
+              logpath      => $logpath,
+              logfile_name => "${unique_name}-cron-${cron_name}",
+              group        => $real_group,
+            }),
+        }
       }
     }
   }

@@ -1,4 +1,0 @@
-if ( $programname == "<%= @unique_name %>" or $!_SYSTEMD_UNIT == "<%= @unique_name %>.service" ) then {
-  action(type="omfile" file="<%= "#{@logpath}/#{@unique_name}" %>.log" fileGroup="<%= @real_group %>" fileCreateMode="0640" )
-  stop
-}
