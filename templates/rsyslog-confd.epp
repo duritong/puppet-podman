@@ -4,7 +4,7 @@
   String[1] $logfile_name,
   String[1] $group,
 | -%>
-if ( <%- if $programname { -%>$programname == "<%= $programname %>" or <%- } -%> $!_SYSTEMD_UNIT == "<%= $service_name %>.service" ) then {
+if (<%- if $programname { -%> $programname == "<%= $programname %>" or <%- } -%> $!_SYSTEMD_UNIT == "<%= $service_name %>.service" ) then {
   action(type="omfile" file="<%= "${logpath}/${logfile_name}" %>.log" fileGroup="<%= $group %>" fileCreateMode="0640" )
   stop
 }
