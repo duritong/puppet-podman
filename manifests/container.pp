@@ -413,7 +413,7 @@ define podman::container (
         homedir         => $real_homedir,
         pod_name        => $pod_name,
         trigger_restart => false,
-      }.merge($cron_vals.filter |$i| { $i[0] in ['cmd','trigger_restart'] })
+      }.merge($cron_vals.filter |$i| { $i[0] in ['cmd', 'trigger_restart', 'container_name'] })
       Systemd::Timer["${unique_name}-${cron_name}.timer"] {
         timer_content   => epp('podman/cron/cron.timer.epp', $timer_params),
         service_content => epp('podman/cron/cron.service.epp', $service_params),
