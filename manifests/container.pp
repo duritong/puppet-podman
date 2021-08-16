@@ -431,7 +431,7 @@ define podman::container (
           "${unique_name}-cron-${cron_name}":
             ensure  => $ensure,
             content => epp('podman/rsyslog-confd.epp',{
-              service_name => $unique_name,
+              service_name => "${unique_name}-cron-${cron_name}",
               logpath      => $logpath,
               logfile_name => "${unique_name}-cron-${cron_name}",
               group        => $real_group,

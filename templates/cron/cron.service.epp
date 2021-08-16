@@ -22,7 +22,7 @@ Group=<%= $group %>
 
 Environment="XDG_RUNTIME_DIR=/run/pods/<%= $uid %>"
 
-SyslogIdentifier=cron-<%= $container_name %>
+SyslogIdentifier=<%= $service_name %>-cron-<%= $cron_name %>
 
 ExecStart=/usr/bin/podman exec <%= $container_name %> <%= $cmd %>
 <% if $trigger_restart {
