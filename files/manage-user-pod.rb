@@ -177,7 +177,7 @@ def parse_containers(containers, volumes, pod_specs, system_controls)
     user = system_controls['containers'][con['name']]['user']
     group = nil
     if user && user =~ /:/
-      user, group = user.split(':',2)
+      user, group = user.to_s.split(':',2)
     end
     user ||= res[con['name']]['securityContext']['runAsUser'] || pod_specs['securityContext']['runAsUser']
     group ||= res[con['name']]['securityContext']['runAsGroup'] || pod_specs['securityContext']['runAsGroup']
