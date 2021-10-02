@@ -30,7 +30,7 @@ define podman::container::user (
   # https://github.com/containers/libpod/issues/4057
   systemd::tmpfile {
     "podman_tmp_${name}.conf":
-      content => "d /run/pods/${uid} 700 ${name} ${name}\nd /run/pods/${uid}/containers 700 ${name} ${name}";
+      content => "d /run/pods/${uid} 700 ${name} ${group}\nd /run/pods/${uid}/containers 700 ${name} ${group}";
   }
   $image_lifecycle_cron = "/etc/cron.daily/podman-${name}-image-lifecycle.sh"
   concat {
@@ -131,10 +131,13 @@ define podman::container::user (
       mode   => '0440',
       notify => Exec["init-podman-auth-file-${name}"];
     } -> exec { "pre-init-podman-auth-file-${name}":
-      command => "bash -c \"touch /var/lib/containers/users/${name}/data/auth.json && chown ${name} /var/lib/containers/users/${name}/data/auth.json\"",
+      command => "bash -c \"touch /var/lib/containers/users/${name}/data/auth.json && \
+                  chown ${name} /var/lib/containers/users/${name}/data/auth.json\"",
       creates => "/var/lib/containers/users/${name}/data/auth.json",
     } ~> exec { "init-podman-auth-file-${name}":
-      command     => "bash -c \"/usr/local/bin/container-yaml-auth-to-authfile.rb $(cat /var/lib/containers/users/${name}/data/auth_files.args)\" > /var/lib/containers/users/${name}/data/auth.json",
+      command     => "bash -c \"/usr/local/bin/container-yaml-auth-to-authfile.rb \
+                      $(cat /var/lib/containers/users/${name}/data/auth_files.args)\" > \
+                      /var/lib/containers/users/${name}/data/auth.json",
       user        => $name,
       group       => $group,
       refreshonly => true,
