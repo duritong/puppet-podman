@@ -98,9 +98,12 @@ def parse_volumes(volumes, volumes_base_dir)
   volumes.each_with_object({}) do |vol,res|
     err("Error with volume (#{vol.inspect}) - must contain name") if vol['name'].nil?
     err("Error with volume (#{vol.inspect}) - name already used") if res[vol['name']]
-    if vol['hostPath'] && vol['hostPath']['path']&& vol['hostPath']['type'] == 'Directory'
+    if vol['hostPath'] && vol['hostPath']['path'] && vol['hostPath']['type'] == 'Directory'
       res[vol['name']] = File.join(volumes_base_dir, File.expand_path(vol['hostPath']['path']))
       err("Non-existing volumes directory: '#{res[vol['name']]}'") unless File.directory?(res[vol['name']])
+    elsif vol['hostPath'] && vol['hostPath']['path'] && vol['hostPath']['type'] == 'File'
+      res[vol['name']] = File.join(volumes_base_dir, File.expand_path(vol['hostPath']['path']))
+      err("Non-existing file path: '#{res[vol['name']]}'") unless File.file?(res[vol['name']])
     elsif vol['emptyDir'] && vol['emptyDir']['medium'] == 'Memory'
       res[vol['name']] = 'tmpfs'
     else
