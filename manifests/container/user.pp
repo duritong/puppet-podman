@@ -30,7 +30,7 @@ define podman::container::user (
   # https://github.com/containers/libpod/issues/4057
   systemd::tmpfile {
     "podman_tmp_${name}.conf":
-      content => "d /run/pods/${uid} 700 ${name} ${name}\nd /run/pods/${uid}/containers 700 ${name} ${name}";
+      content => "d /run/pods/${uid} 700 ${name} ${group}\nd /run/pods/${uid}/containers 700 ${name} ${group}";
   }
   $image_lifecycle_cron = "/etc/cron.daily/podman-${name}-image-lifecycle.sh"
   concat {
