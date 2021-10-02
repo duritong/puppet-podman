@@ -131,10 +131,13 @@ define podman::container::user (
       mode   => '0440',
       notify => Exec["init-podman-auth-file-${name}"];
     } -> exec { "pre-init-podman-auth-file-${name}":
-      command => "bash -c \"touch /var/lib/containers/users/${name}/data/auth.json && chown ${name} /var/lib/containers/users/${name}/data/auth.json\"",
+      command => "bash -c \"touch /var/lib/containers/users/${name}/data/auth.json && \
+                  chown ${name} /var/lib/containers/users/${name}/data/auth.json\"",
       creates => "/var/lib/containers/users/${name}/data/auth.json",
     } ~> exec { "init-podman-auth-file-${name}":
-      command     => "bash -c \"/usr/local/bin/container-yaml-auth-to-authfile.rb $(cat /var/lib/containers/users/${name}/data/auth_files.args)\" > /var/lib/containers/users/${name}/data/auth.json",
+      command     => "bash -c \"/usr/local/bin/container-yaml-auth-to-authfile.rb \
+                      $(cat /var/lib/containers/users/${name}/data/auth_files.args)\" > \
+                      /var/lib/containers/users/${name}/data/auth.json",
       user        => $name,
       group       => $group,
       refreshonly => true,
