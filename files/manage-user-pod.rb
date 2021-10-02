@@ -83,6 +83,9 @@ def parse_system_controls!(system_controls)
   system_controls['exposed_ports'].each do |port|
     err("Invalid exposed port: #{port}") unless port =~ /^\d+\/(tcp|udp)$/
   end
+  if system_controls['network_mode'] == 'isolated' && !system_controls['exposed_ports'].empty?
+    err("You can't expose ports with isolated network_mode!")
+  end
   if system_controls['pidfile'] && !File.writable?(File.dirname(system_controls['pidfile']))
     err("Can't write pidfile '#{system_controls['pidfile']}'")
   end
@@ -158,14 +161,17 @@ def parse_containers(containers, volumes, pod_specs, system_controls)
       end
     end
     Array(con['ports']).each do |port|
+      configured = false
       if socket_ports.keys.include?(port['containerPort'].to_i) && port['protocol'] == 'TCP'
         system_controls['socket_ports'][port['containerPort'].to_i] = socket_ports.delete(port['containerPort'].to_i)
-      else
-        if exposed_ports.include?("#{port['hostPort'].to_i}/#{(port['protocol']||'tcp').downcase}")
-          system_controls['exposed_ports'][con['name']] << "#{port['hostPort'].to_i}:#{port['containerPort'].to_i}/#{(port['protocol']||'tcp').downcase}"
-        else
-          puts "Ignoring port specification '#{port.inspect}', since it's not exposed nor passed through socket"
-        end
+        configured = true
+      end
+      if exposed_ports.include?("#{port['hostPort'].to_i}/#{(port['protocol']||'tcp').downcase}")
+        system_controls['exposed_ports'] << "#{port['hostPort'].to_i}:#{port['containerPort'].to_i}/#{(port['protocol']||'tcp').downcase}"
+        configured = true
+      end
+      unless configured
+        puts "Ignoring port specification '#{port.inspect}', since it's not exposed nor passed through socket"
       end
     end
     res[con['name']]['securityContext'] = con['securityContext'] || {}
@@ -271,6 +277,12 @@ def socket_pod_str(name, con_name, port, index, first_con_id, port_vals, system_
   elsif system_controls['network_mode']
     res << " --network=#{system_controls['network_mode']}"
   end
+  # setting up exposed_ports must happen on the first pod
+  unless first_con_id
+    system_controls['exposed_ports'].each do |port|
+      res << " --publish #{port}"
+    end
+  end
   if system_controls['userns']
     res << " --userns=#{system_controls['userns']}"
   end
@@ -295,8 +307,11 @@ end
 
 def pod_cmd(pod_name, con_name, pod_specs, con_values, first_con_id, volumes, system_controls)
   res = "/usr/bin/podman run -d --pod '#{pod_name_str(pod_name, first_con_id)}' --name '#{con_name}'"
-  system_controls['exposed_ports'].each do |port|
-    res << " --publish #{port}"
+  # setting up exposed_ports must happen on the first pod
+  unless first_con_id
+    system_controls['exposed_ports'].each do |port|
+      res << " --publish #{port}"
+    end
   end
   con_values['volumeMounts'].each do |vol|
     if volumes[vol['name']] == 'tmpfs'
