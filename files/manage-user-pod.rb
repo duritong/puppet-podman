@@ -295,7 +295,7 @@ end
 
 
 def socket_pod_str(name, con_name, port, index, first_con_id, port_vals, system_controls)
-  res = "/usr/bin/podman run -d --pod '#{pod_name_str(name,first_con_id)}' --name '#{con_name}' -v #{port_vals['dir']}:/run/pod:rw,Z"
+  res = "/usr/bin/podman run -d --pod '#{pod_name_str(name,first_con_id)}' --name '#{con_name}' -v #{port_vals['dir']}:/run/pod:rw"
   if system_controls['network_mode'] == 'isolated'
     if index == 0
       res << " --network=none"
