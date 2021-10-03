@@ -137,15 +137,21 @@ def parse_containers(containers, volumes, pod_specs, system_controls)
     res[con['name']] = { 'image' => con['image'] }
     system_controls['containers'][con['name']] ||= {}
 
+    system_controls['containers'][con['name']]['volumes'] = image_volumes(con['image']) - (Array(system_controls['volumes_to_ignore'][con['name']]) || [])
+
     vol_mounts = Array(con['volumeMounts'])
     res[con['name']]['volumeMounts'] = vol_mounts.each_with_object([]) do |vol,obj|
       err("Error with container #{con['name']} - volume '#{vol['name']}' is not known in volumes!") unless volumes[vol['name']]
       err("Error with container #{con['name']} - volume '#{vol['name']}' requires mountPath") unless vol['mountPath']
 
+      system_controls['containers'][con['name']]['volumes'].delete(vol['mountPath'])
+
       obj << vol
     end
 
-    system_controls['containers'][con['name']] ||= {}
+    unless (vols = system_controls['containers'][con['name']]['volumes']).empty?
+      err("Error with container #{con['name']} - defines the following volumes that are not handled: #{vols.join(', ')}")
+    end
 
     envs = Array(con['env'])
     res[con['name']]['env'] = envs.each_with_object({}) do |env, obj|
@@ -257,20 +263,39 @@ def pod_name_str(pod_name, first_con_id)
   end
 end
 
-def user_group_id(image)
-  res = `podman inspect -t image #{image}`
-  unless $?.success?
-    res = `podman pull -q #{image} > /dev/null && podman inspect -t image #{image}`
-    unless $?.success?
-      err("Unable to inspect & pull image '#{image}'")
-    end
-  end
-  images = JSON.parse(res)
-  images.first['User'].split(':',2)
+def images
+  @images ||= {}
 end
 
+def image_inspect(image)
+  images[image] ||= begin
+    res = `podman inspect -t image #{image}`
+    unless $?.success?
+      res = `podman pull -q #{image} > /dev/null && podman inspect -t image #{image}`
+      unless $?.success?
+        err("Unable to inspect & pull image '#{image}'")
+      end
+    end
+    JSON.parse(res).first
+  end
+end
+
+def user_group_id(image)
+  image_inspect(image)['User'].split(':',2)
+end
+
+def image_volumes(image)
+  volumes = image_inspect(image)['Config']['Volumes']
+  if volumes.is_a?(Hash)
+    volumes.keys
+  else
+    []
+  end
+end
+
+
 def socket_pod_str(name, con_name, port, index, first_con_id, port_vals, system_controls)
-  res = "/usr/bin/podman run -d --pod '#{pod_name_str(name,first_con_id)}' --name '#{con_name}' -v #{port_vals['dir']}:/run/pod:rw"
+  res = "/usr/bin/podman run -d --pod '#{pod_name_str(name,first_con_id)}' --name '#{con_name}' -v #{port_vals['dir']}:/run/pod:rw,Z"
   if system_controls['network_mode'] == 'isolated'
     if index == 0
       res << " --network=none"
@@ -383,6 +408,7 @@ def pod_cmd(pod_name, con_name, pod_specs, con_values, first_con_id, volumes, sy
   if s = system_controls['containers'][con_name]['systemd']
     res << " --systemd=#{s}"
   end
+  res << " --image-volume ignore"
   res << " #{con_values['image']}"
   res << " #{con_values['command']}" if con_values['command']
   res
@@ -478,6 +504,12 @@ unless system_controls.is_a?(Hash)
   err("Requires a yaml for system controls!")
 end
 system_controls['name'] ||= user_pod['metadata']['name'] if user_pod['metadata']
+
+if user_pod['metadata'] && user_pod['metadata']['volumes_to_ignore']
+  system_controls['volumes_to_ignore'] = user_pod['metadata']['volumes_to_ignore']
+else
+  system_controls['volumes_to_ignore'] = {}
+end
 
 parse_system_controls!(system_controls)
 
