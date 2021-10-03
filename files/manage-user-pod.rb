@@ -150,7 +150,7 @@ def parse_containers(containers, volumes, pod_specs, system_controls)
     end
 
     unless (vols = system_controls['containers'][con['name']]['volumes']).empty?
-      err("Error with container #{con['name']} - defines the following volumes that are not handled: #{vols.join(', ')}")
+      err("Error with image for container #{con['name']} - defines the following volumes that are not handled: #{vols.join(', ')}. If desired they must be ignored.")
     end
 
     envs = Array(con['env'])
