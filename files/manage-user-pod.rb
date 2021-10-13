@@ -153,6 +153,8 @@ def parse_containers(containers, volumes, pod_specs, system_controls)
       err("Error with image for container #{con['name']} - defines the following volumes that are not handled: #{vols.join(', ')}. If desired they must be ignored.")
     end
 
+    res[con['name']]['command'] = Array(con['command'])
+    res[con['name']]['args'] = Array(con['args'])
     envs = Array(con['env'])
     res[con['name']]['env'] = envs.each_with_object({}) do |env, obj|
       err("Error with environment '#{env['name']} - requires name & value!") if env['name'].nil? || env['value'].nil?
@@ -409,8 +411,18 @@ def pod_cmd(pod_name, con_name, pod_specs, con_values, first_con_id, volumes, sy
     res << " --systemd=#{s}"
   end
   res << " --image-volume ignore"
+
+  unless con_values['command'].empty?
+    cmd = con_values['command'].to_json
+    res << " --entrypoint='#{cmd}'" 
+  end
+ 
   res << " #{con_values['image']}"
-  res << " #{con_values['command']}" if con_values['command']
+
+  unless con_values['args'].empty?
+    args = con_values['args'].join(" ")
+    res << " #{args}" 
+  end
   res
 end
 
