@@ -173,7 +173,7 @@ def parse_containers(containers, volumes, pod_specs, system_controls)
     end
     Array(con['ports']).each do |port|
       configured = false
-      if socket_ports.keys.include?(port['containerPort'].to_i) && port['protocol'] == 'TCP'
+      if socket_ports.keys.include?(port['containerPort'].to_i) && ((port['protocol']||'tcp').downcase == 'tcp')
         system_controls['socket_ports'][port['containerPort'].to_i] = socket_ports.delete(port['containerPort'].to_i)
         configured = true
       end
