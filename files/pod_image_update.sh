@@ -17,7 +17,7 @@ if [ -f "$1" ]; then
       echo "Something went wrong while fetching ${image} - please check previous output"
       exit "$cr"
     fi
-  done < <(grep -E '^\s{4}image: ' "$1"  | sed 's/.*image:\s*//')
+  done < <(grep -E '^\s{4,6}image: ' "$1"  | sed 's/.*image:\s*//')
   exit "$ret"
 else
   echo "No such file ${1}!"
