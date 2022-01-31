@@ -384,8 +384,20 @@ define podman::container (
       } else {
         $_k = "${real_homedir}/${k}"
       }
-      if 'content' in $v and $v['content'] =~ /%%TROCLA_/ {
-        $_v = $v.merge( { content => Sensitive(trocla::gsub($v['content'], { prefix => "container_${name}_", })) })
+      if 'content' in $v {
+        if $v['content'] =~ /\AERB:/ {
+          $tmp_content = template($v['content'].regsubst(/\AERB:/,''))
+          if $tmp_content =~ /%%TROCLA_/ {
+            $_content = trocla::gsub($tmp_content, { prefix => "container_${name}_", })
+          } else {
+            $_content = $tmp_content
+          }
+          $_v = $v.merge( { content => Sensitive($_content) })
+        } elsif $v['content'] =~ /%%TROCLA_/ {
+          $_v = $v.merge( { content => Sensitive(trocla::gsub($v['content'], { prefix => "container_${name}_", })) })
+        } else {
+          $_v = $v
+        }
       } else {
         $_v = $v
       }
