@@ -25,7 +25,7 @@ class podman (
     'user.max_user_namespaces':
       value => '28633',
   } -> package {
-    ['slirp4netns', 'podman', 'runc']:
+    ['slirp4netns', 'podman']:
       ensure => installed,
   } -> User<| title != 'root' |>
 
