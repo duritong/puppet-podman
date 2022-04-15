@@ -414,14 +414,14 @@ def pod_cmd(pod_name, con_name, pod_specs, con_values, first_con_id, volumes, sy
 
   unless con_values['command'].empty?
     cmd = con_values['command'].to_json
-    res << " --entrypoint='#{cmd}'" 
+    res << " --entrypoint='#{cmd}'"
   end
- 
+
   res << " #{con_values['image']}"
 
   unless con_values['args'].empty?
     args = con_values['args'].join(" ")
-    res << " #{args}" 
+    res << " #{args}"
   end
   res
 end
