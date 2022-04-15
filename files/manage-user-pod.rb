@@ -344,10 +344,11 @@ def pod_cmd(pod_name, con_name, pod_specs, con_values, first_con_id, volumes, sy
     end
   end
   con_values['volumeMounts'].each do |vol|
+    str = ""
     if volumes[vol['name']] == 'tmpfs'
       str << " --tmpfs #{vol['mountPath']}"
     else
-      str = " --volume #{volumes[vol['name']]}:#{vol['mountPath']}"
+      str << " --volume #{volumes[vol['name']]}:#{vol['mountPath']}"
       if vol['readOnly']
         str << ":ro,Z"
       else
