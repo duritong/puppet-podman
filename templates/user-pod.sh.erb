@@ -34,6 +34,7 @@ function pod_start() {
   fi
   echo "Starting Pod <%= @sanitised_con_name %>"
   set -e
+<% legacy_podman = @facts['os']['release']['major'].to_i < 8 -%>
 <% publish_socket_0_con_name = "socket-#{@publish_socket.keys.first}-#{@sanitised_con_name}"
 @publish_socket.keys.each_with_index do |port,i|
   vals = @publish_socket[port]
@@ -41,7 +42,10 @@ function pod_start() {
   mode = vals['mode'] || '0777'
 -%>
   [ -e <%= dir %>/<%= port %> ] && rm -f <%= dir %>/<%= port %>
-  /usr/bin/podman run -d --pod <%= 'new:' if i < 1 %>pod-<%= @sanitised_con_name %> --name socket-<%= port %>-<%= @sanitised_con_name %> \
+<% unless legacy_podman -%>
+  /usr/bin/podman pod create --replace --name pod-<%= @sanitised_con_name %><% if @run_flags['userns'] -%> --userns=<%= @run_flags['userns'] %><% end -%>
+<% end %>
+  /usr/bin/podman run -d --pod <%= 'new:' if legacy_podman && (i < 1) %>pod-<%= @sanitised_con_name %> --name socket-<%= port %>-<%= @sanitised_con_name %> \
     -v <%= dir %>:/run/pod:rw  \
 <% if @run_flags['network'] == 'isolated'
  if i == 0 -%>
@@ -92,7 +96,7 @@ end -%>
 <% if @run_flags['user'] -%>
     --user=<%= @run_flags['user'].gsub(/UID/,"#{@uid}").gsub(/GID/,"#{@real_gid}") %> \
 <% end -%>
-<% if @run_flags['userns'] -%>
+<% if legacy_podman && @run_flags['userns'] -%>
     --userns=<%= @run_flags['userns'] %> \
 <% end -%>
 <% if @run_flags['network'] == 'isolated' -%>

@@ -52,6 +52,12 @@ define podman::container::user (
         content => "su - ${name} -s /bin/bash -c \"yes y | podman system prune -a\" > /dev/null\n",
         order   => '99';
     }
+    if versioncmp($facts['os']['release']['major'],'7') > 0 {
+      exec { "loginctl enable-linger ${name}":
+        unless  => "loginctl show-user ${name}",
+        require => User::Managed[$name],
+      }
+    }
 
     file {
       "${homedir}/.bash_profile":
@@ -92,6 +98,7 @@ define podman::container::user (
       "${homedir}/.local/share",
       "${homedir}/.local/share/containers",
       "${homedir}/.config",
+      "${homedir}/.cache",
       "${homedir}/.config/containers",]:
       # lint:endignore
         ensure => directory,

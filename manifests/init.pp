@@ -44,6 +44,7 @@ class podman (
   selinux::fcontext {
     '/usr/local/bin/manage-user-pod\.rb':
       setype => 'container_runtime_exec_t',
+      require => Package['podman'];
   } -> file {
     default:
       owner => root,
@@ -70,19 +71,19 @@ class podman (
         size    => $size_container_disk,
         fs_type => 'xfs',
         seltype => 'container_var_lib_t',
-        require => Selinux::Fcontext['/var/lib/containers/users/[^/]+/bin(/.*)?'],
     }
   }
   selinux::fcontext {
     '/var/lib/containers/users/[^/]+/bin(/.*)?':
       setype => 'container_runtime_exec_t',
-  } -> file {
+      require => Package['podman'];
+  } -> Podman::Container<| |>
+  file {
     '/var/lib/containers/users':
       ensure => directory,
       owner  => 'root',
       group  => 'root',
       mode   => '0711',
-      #seltype => 'data_home_t',
       before => Package['podman'];
   }
 
@@ -93,7 +94,8 @@ class podman (
     }
   }
 
-  if $use_rkhunter {
+  # no rkhunter yet on EL9
+  if $use_rkhunter and versioncmp($facts['os']['release']['major'],'9') < 0 {
     # https://github.com/relud/puppet-lint-strict_indent-check/issues/20
     # lint:ignore:strict_indent
     $content = @(EOF)
