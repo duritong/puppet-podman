@@ -52,11 +52,17 @@ class podman (
       mode  => '0755';
     '/usr/local/bin/container-yaml-auth-to-authfile.rb':
       source => 'puppet:///modules/podman/yaml-to-authfile.rb';
+    '/usr/local/bin/update-container-auth.sh':
+      require => File['/usr/local/bin/container-yaml-auth-to-authfile.rb'],
+      source  => 'puppet:///modules/podman/update-container-auth.sh';
     '/usr/local/bin/container-update-image.sh':
-      source => 'puppet:///modules/podman/image_update.sh';
+      require => File['/usr/local/bin/update-container-auth.sh'],
+      source  => 'puppet:///modules/podman/image_update.sh';
     '/usr/local/bin/pod-update-image.sh':
-      source => 'puppet:///modules/podman/pod_image_update.sh';
+      require => File['/usr/local/bin/update-container-auth.sh'],
+      source  => 'puppet:///modules/podman/pod_image_update.sh';
     '/usr/local/bin/manage-user-pod.rb':
+      require => File['/usr/local/bin/pod-update-image.sh'],
       seltype => 'container_runtime_exec_t',
       source  => 'puppet:///modules/podman/manage-user-pod.rb';
   }
