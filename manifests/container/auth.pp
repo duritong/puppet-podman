@@ -17,7 +17,7 @@ define podman::container::auth (
       owner   => $owner,
       group   => $group,
       mode    => $mode,
-      notify  => Exec["update-podman-auth-file-${name}"];
+      notify  => Exec["update-podman-auth-file-${user}"];
   } -> concat::fragment { "podman-auth-files-${user}-${name}":
     order   => $order,
     target  => "podman-auth-files-${user}", # no newline!
