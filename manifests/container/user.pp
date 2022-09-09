@@ -137,29 +137,12 @@ define podman::container::user (
       group  => $group,
       mode   => '0440',
       notify => Exec["init-podman-auth-file-${name}"];
-    } -> exec { "pre-init-podman-auth-file-${name}":
-      command => "bash -c \"touch /var/lib/containers/users/${name}/data/auth.json && \
-                  chown ${name} /var/lib/containers/users/${name}/data/auth.json\"",
-      creates => "/var/lib/containers/users/${name}/data/auth.json",
-    } ~> exec { "init-podman-auth-file-${name}":
-      command     => "bash -c \"/usr/local/bin/container-yaml-auth-to-authfile.rb \
-                      $(cat /var/lib/containers/users/${name}/data/auth_files.args)\" > \
-                      /var/lib/containers/users/${name}/data/auth.json",
+    } ~> exec { "update-podman-auth-file-${name}":
+      command     => "/usr/local/bin/update-container-auth.sh ${name}",
       user        => $name,
       group       => $group,
       refreshonly => true,
       subscribe   => Concat["podman-auth-files-${name}"],
-    } -> file { "/var/lib/containers/users/${name}/data/auth.json":
-      ensure => file,
-      owner  => $name,
-      group  => $group,
-      mode   => '0600',
-    } -> file { "/run/pods/${uid}/containers/auth.json":
-      # copy for convenience if REGISTRY_AUTH_FILE is not set
-      source => "/var/lib/containers/users/${name}/data/auth.json",
-      owner  => $name,
-      group  => $group,
-      mode   => '0600',
     }
   } else {
     Concat[$image_lifecycle_cron] -> User::Managed[$name]

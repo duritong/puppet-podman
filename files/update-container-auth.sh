@@ -14,5 +14,7 @@ fi
 
 /usr/local/bin/container-yaml-auth-to-authfile.rb $(cat /var/lib/containers/users/${user}/data/auth_files.args) > "/var/lib/containers/users/${user}/data/auth.json"
 
+chmod 0600 "/var/lib/containers/users/${user}/data/auth.json"
+
 uid=$(uid -u $user)
-cp "/var/lib/containers/users/${user}/data/auth.json" "/run/pods/${uid}/containers/auth.json"
+cp -a "/var/lib/containers/users/${user}/data/auth.json" "/run/pods/${uid}/containers/auth.json"
