@@ -43,7 +43,7 @@ class podman (
 
   selinux::fcontext {
     '/usr/local/bin/manage-user-pod\.rb':
-      setype => 'container_runtime_exec_t',
+      setype  => 'container_runtime_exec_t',
       require => Package['podman'];
   } -> file {
     default:
@@ -75,7 +75,7 @@ class podman (
   }
   selinux::fcontext {
     '/var/lib/containers/users/[^/]+/bin(/.*)?':
-      setype => 'container_runtime_exec_t',
+      setype  => 'container_runtime_exec_t',
       require => Package['podman'];
   } -> Podman::Container<| |>
   file {
