@@ -16,5 +16,5 @@ fi
 
 chmod 0600 "/var/lib/containers/users/${user}/data/auth.json"
 
-uid=$(uid -u $user)
+uid=$(id -u $user)
 cp -a "/var/lib/containers/users/${user}/data/auth.json" "/run/pods/${uid}/containers/auth.json"
