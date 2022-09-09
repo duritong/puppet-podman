@@ -132,11 +132,10 @@ define podman::container::user (
         # lint:endignore
         environment => ["HOME=${homedir}", "XDG_RUNTIME_DIR=/run/pods/${uid}"],
     } -> concat { "podman-auth-files-${name}":
-      path   => "/var/lib/containers/users/${name}/data/auth_files.args",
-      owner  => 'root',
-      group  => $group,
-      mode   => '0440',
-      notify => Exec["init-podman-auth-file-${name}"];
+      path  => "/var/lib/containers/users/${name}/data/auth_files.args",
+      owner => 'root',
+      group => $group,
+      mode  => '0440',
     } ~> exec { "update-podman-auth-file-${name}":
       command     => "/usr/local/bin/update-container-auth.sh ${name}",
       user        => $name,
