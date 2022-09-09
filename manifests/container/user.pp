@@ -142,6 +142,11 @@ define podman::container::user (
       group       => $group,
       refreshonly => true,
       subscribe   => Concat["podman-auth-files-${name}"],
+    } -> file { "/var/lib/containers/users/${name}/data/auth.json":
+      ensure => file,
+      user   => $name,
+      group  => $group,
+      mode   => '0600';
     }
   } else {
     Concat[$image_lifecycle_cron] -> User::Managed[$name]
