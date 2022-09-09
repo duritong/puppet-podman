@@ -16,10 +16,9 @@ Environment="XDG_RUNTIME_DIR=/run/pods/<%= @uid %>" "REGISTRY_AUTH_FILE=/var/lib
 SyslogIdentifier=<%= @unique_name %>
 
 ExecStartPre=-/usr/bin/podman pod rm -f <%= @sanitised_con_name %>
+ExecStartPre=/usr/local/bin/update-container-auth.sh <%= @user %>
 <% unless @run_flags['skip_image_pull'] -%>
 ExecStartPre=-/usr/local/bin/pod-update-image.sh <%= @pod_yaml_path %>
-<% else -%>
-ExecStartPre=/usr/local/bin/update-container-auth.sh <%= @user %>
 <% end -%>
 ExecStart=/usr/bin/podman play kube <%= @pod_yaml_path %>
 
