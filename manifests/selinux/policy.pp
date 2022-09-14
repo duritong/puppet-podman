@@ -13,10 +13,11 @@ define podman::selinux::policy (
 
   file {
     "/var/lib/containers/selinux/${name}.cil":
-      source => "puppet:///modules/podman/selinux/container_modules/${name}.cil",
-      owner  => root,
-      group  => 0,
-      mode   => '0644',
+      source  => "puppet:///modules/podman/selinux/container_modules/${name}.cil",
+      owner   => root,
+      group   => 0,
+      mode    => '0644',
+      seltype => 'container_var_lib_t';
   } ~> exec { "install_selinux_container_policy_${name}":
     command     => "semodule -i /var/lib/containers/selinux/${name}.cil ${template_files_str}",
     refreshonly => true,
