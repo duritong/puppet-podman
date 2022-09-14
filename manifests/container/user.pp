@@ -132,22 +132,21 @@ define podman::container::user (
         # lint:endignore
         environment => ["HOME=${homedir}", "XDG_RUNTIME_DIR=/run/pods/${uid}"],
     } -> concat { "podman-auth-files-${name}":
-      path    => "/var/lib/containers/users/${name}/data/auth_files.args",
-      owner   => 'root',
-      group   => $group,
-      mode    => '0440',
-      require => File["/var/lib/containers/users/${name}/data"],
-    } ~> exec { "update-podman-auth-file-${name}":
-      command     => "/usr/local/bin/update-container-auth.sh ${name}",
-      user        => $name,
-      group       => $group,
-      refreshonly => true,
-      subscribe   => Concat["podman-auth-files-${name}"],
+      path  => "/var/lib/containers/users/${name}/data/auth_files.args",
+      owner => 'root',
+      group => $group,
+      mode  => '0440',
     } -> file { "/var/lib/containers/users/${name}/data/auth.json":
       ensure => file,
       owner  => $name,
       group  => $group,
       mode   => '0600';
+    } -> exec { "update-podman-auth-file-${name}":
+      command     => "/usr/local/bin/update-container-auth.sh ${name}",
+      user        => $name,
+      group       => $group,
+      refreshonly => true,
+      subscribe   => Concat["podman-auth-files-${name}"],
     }
   } else {
     Concat[$image_lifecycle_cron] -> User::Managed[$name]
