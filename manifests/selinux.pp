@@ -7,22 +7,17 @@ class podman::selinux {
     before     => Package['podman'],
   }
   file {
-    '/var/lib/containers/selinux':
+    default:
       ensure  => directory,
       owner   => root,
       group   => 0,
       mode    => '0644',
       recurse => true,
       purge   => true,
-      force   => true;
+      force   => true,
+      seltype => 'container_var_lib_t';
+    '/var/lib/containers/selinux':;
     '/var/lib/containers/selinux/templates':
-      ensure  => directory,
       source  => 'puppet:///modules/podman/selinux/templates',
-      owner   => root,
-      group   => 0,
-      mode    => '0644',
-      recurse => true,
-      purge   => true,
-      force   => true;
   }
 }
