@@ -50,6 +50,7 @@ ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/run/
 ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/data/
 ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/storage/
 ReadWriteDirectories=/run/pods/<%= @uid %>/
+ReadWriteDirectories=/proc
 <% @real_volumes.each do |host_dir,container_dir|
   if container_dir =~ /.*:rw(,Z)?$/ -%>
 ReadWriteDirectories=<%= host_dir %>
