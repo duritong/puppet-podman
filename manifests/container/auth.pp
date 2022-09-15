@@ -5,6 +5,7 @@ define podman::container::auth (
   String[1] $user,
   String[1] $group,
   String[1] $owner = 'root',
+  String[1] $seltype = 'container_var_lib_t',
   Stdlib::Filemode $mode = '0440',
   Pattern[/^\d{3}$/] $order = '050',
   String[1] $con_name = $title,
@@ -17,6 +18,7 @@ define podman::container::auth (
       owner   => $owner,
       group   => $group,
       mode    => $mode,
+      seltype => $seltype,
       notify  => Exec["update-podman-auth-file-${user}"];
   } -> concat::fragment { "podman-auth-files-${user}-${name}":
     order   => $order,
