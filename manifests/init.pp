@@ -32,6 +32,11 @@ class podman (
   include yum::centos::disable_rhsmcertd
   Package['podman'] -> Class['yum::centos::disable_rhsmcertd']
 
+  file { '/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release':
+    ensure  => file,
+    require => Package['slirp4netns', 'podman'],
+  }
+
   # have our own tmpdirs and make it short as sockets
   # go into that dir, which can have limited length
   # https://github.com/containers/libpod/issues/4057
@@ -65,6 +70,14 @@ class podman (
       require => File['/usr/local/bin/pod-update-image.sh'],
       seltype => 'container_runtime_exec_t',
       source  => 'puppet:///modules/podman/manage-user-pod.rb';
+  }
+
+  file {
+    '/var/log/containers':
+      ensure => directory,
+      owner  => root,
+      group  => 0,
+      mode   => '0600';
   }
 
   if $size_container_disk {
