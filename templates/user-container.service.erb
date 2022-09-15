@@ -33,16 +33,11 @@ ProtectHome=true
 InaccessibleDirectories=/home
 <% end -%>
 
+<% if @facts['os']['release']['major'].to_i >= 8 -%>
+ProtectSystem=strict
+<% else -%>
 ProtectSystem=full
-# to be migrated once in EL7
-# ProtectSystem=strict
-
-# not yet available
-# to be migrated once in EL7
-#PrivateUsers=true
-#ProtectKernelTunables=true
-#ProtectKernelModules=true
-#ProtectControlGroups=yes
+<% end -%>
 
 ReadOnlyDirectories=/
 ReadWriteDirectories=<%= @real_homedir %>
@@ -51,6 +46,9 @@ ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/data/
 ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/storage/
 ReadWriteDirectories=/run/pods/<%= @uid %>/
 ReadWriteDirectories=/proc
+<% if @facts['os']['release']['major'].to_i >= 8 -%>
+ReadWriteDirectories=/dev/shm
+<% end -%>
 <% @real_volumes.each do |host_dir,container_dir|
   if container_dir =~ /.*:rw(,Z)?$/ -%>
 ReadWriteDirectories=<%= host_dir %>
