@@ -53,8 +53,8 @@ define podman::container::user (
         order   => '99';
     }
     if versioncmp($facts['os']['release']['major'],'7') > 0 {
-      exec { "loginctl enable-linger ${name}":
-        unless  => "loginctl show-user ${name}",
+      loginctl_user { $name:
+        linger  => enabled,
         require => User::Managed[$name],
       }
     }
@@ -132,15 +132,17 @@ define podman::container::user (
         # lint:endignore
         environment => ["HOME=${homedir}", "XDG_RUNTIME_DIR=/run/pods/${uid}"],
     } -> concat { "podman-auth-files-${name}":
-      path  => "/var/lib/containers/users/${name}/data/auth_files.args",
-      owner => 'root',
-      group => $group,
-      mode  => '0440',
+      path    => "/var/lib/containers/users/${name}/data/auth_files.args",
+      owner   => 'root',
+      group   => $group,
+      mode    => '0440',
+      seltype => 'container_var_lib_t';
     } -> file { "/var/lib/containers/users/${name}/data/auth.json":
-      ensure => file,
-      owner  => $name,
-      group  => $group,
-      mode   => '0600';
+      ensure  => file,
+      owner   => $name,
+      group   => $group,
+      mode    => '0600',
+      seltype => 'container_var_lib_t';
     } -> exec { "update-podman-auth-file-${name}":
       command     => "/usr/local/bin/update-container-auth.sh ${name}",
       user        => $name,
