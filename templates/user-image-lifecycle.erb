@@ -5,7 +5,7 @@
 
 source <%= @real_homedir %>/.bashrc
 
-/usr/local/bin/update-container-auth.sh <%= @user %> 2> >(grep -v 'already present - Skipping' >&2
+/usr/local/bin/update-container-auth.sh <%= @user %> 2> >(grep -v 'already present - Skipping') >&2
 
 <% if @deployment_mode =~ /pod$/ -%>
 output=$(su - <%= @user %> -s /bin/bash -c "/usr/local/bin/pod-update-image.sh <%= @pod_yaml_path %>")
