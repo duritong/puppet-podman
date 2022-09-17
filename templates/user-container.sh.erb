@@ -34,6 +34,13 @@ function container_start() {
   fi
   echo "Starting Container <%= @sanitised_con_name %>"
   /usr/bin/podman run -d --name <%= @sanitised_con_name %> \
+    <% if @facts['os']['release']['major'].to_i >= 8 -%>
+    --replace \
+    --cgroup-manager=cgroupfs \
+    --conmon-pidfile "${XDG_RUNTIME_DIR}/<%= @unique_name %>.pid" \
+    --cidfile "${XDG_RUNTIME_DIR}/<%= @unique_name %>.cid" \
+    --cgroups=no-conmon \
+<% end -%>
 <% Array(@publish).each do |p| -%>
     --publish <%= p %> \
 <% end -%>
