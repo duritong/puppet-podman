@@ -61,7 +61,7 @@ function pod_start() {
 <% end -%>
     --log-driver=<%= @run_flags['log-driver'] || 'journald' %> \
 <% if @run_flags['log-opt'] -%>
-    --log-opt=<%= @run_flags['log-opt'] %> \
+    --log-opt=<%= @run_flags['log-opt'].is_a?(Hash) ? (@run_flags['log-opt'].map{|k,v| "#{k}=#{v}" }.first) : @run_flags['log-opt'] %> \
 <% end -%>
     --read-only=true \
     --security-opt=no-new-privileges \
@@ -127,7 +127,9 @@ end -%>
       echo "Error while starting container <%= @sanitised_con_name %>"
       exit $ret
     fi
+<% if @facts['os']['release']['major'].to_i < 8 -%>
     cp -f "$(/usr/bin/podman container inspect <%= @sanitised_con_name %> -f '{{.ConmonPidFile}}')" "${XDG_RUNTIME_DIR}/<%= @unique_name %>.pid"
+<% end -%>
 }
 
 if [ "$1" == 'stop' ]; then

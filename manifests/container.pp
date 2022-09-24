@@ -463,6 +463,11 @@ define podman::container (
             owner  => 'root',
             group  => $real_group,
         }
+        if $logpath == '/var/log/containers' {
+          File["${logpath}/${unique_name}-cron-${cron_name}.log"]{
+            seltype => 'container_log_t'
+          }
+        }
       }
     }
   }

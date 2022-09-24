@@ -18,6 +18,7 @@ class podman (
     selinux::policy {
       'podman-base':
         te_source => 'puppet:///modules/podman/selinux/podman-base.te',
+        fc_source => 'puppet:///modules/podman/selinux/podman-base.fc',
         before    => Package['podman'],
     }
   }
@@ -74,10 +75,11 @@ class podman (
 
   file {
     '/var/log/containers':
-      ensure => directory,
-      owner  => root,
-      group  => 0,
-      mode   => '0600';
+      ensure  => directory,
+      owner   => root,
+      group   => 0,
+      mode    => '0600',
+      seltype => 'container_log_t';
   }
 
   if $size_container_disk {

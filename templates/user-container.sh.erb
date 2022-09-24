@@ -1,6 +1,23 @@
 #!/bin/bash
 
 function container_stop() {
+<% if @facts['os']['release']['major'].to_i >= 8 -%>
+  if [ -f "${XDG_RUNTIME_DIR}/<%= @unique_name %>.cid" ]; then
+    running_id=$(cat "${XDG_RUNTIME_DIR}/<%= @unique_name %>.cid")
+    echo "Stopping Container <%= @sanitised_con_name %> - ${running_id}"
+    /usr/bin/podman stop -t 20 --cidfile "${XDG_RUNTIME_DIR}/<%= @unique_name %>.cid"
+    running_id2=$(/usr/bin/podman ps --format '{{.ID}} {{.Names}}' --filter 'name=<%= @sanitised_con_name %>' --filter 'status=running' | /usr/bin/grep -E ' <%= @sanitised_con_name %>$' | cut -d' ' -f 1)
+    if [ ! -z "${running_id2}" ]; then
+      running_id="${running_id2}"
+      /usr/bin/podman kill --cidfile "${XDG_RUNTIME_DIR}/<%= @unique_name %>.cid" > /dev/null
+      if [ $? -gt 0 ]; then
+        echo "Error while killing running container!"
+        exit 120
+      fi
+    fi
+    [ ! -f "${XDG_RUNTIME_DIR}/<%= @unique_name %>.cid" ] || rm -f "${XDG_RUNTIME_DIR}/<%= @unique_name %>.cid"
+  fi
+<% else -%>
   running_id=$(/usr/bin/podman ps --format '{{.ID}} {{.Names}}' --filter 'name=<%= @sanitised_con_name %>' --filter 'status=running' | /usr/bin/grep -E ' <%= @sanitised_con_name %>$' | cut -d' ' -f 1)
   if [ ! -z $running_id ]; then
     echo "Stopping Container <%= @sanitised_con_name %> - ${running_id}"
@@ -16,9 +33,25 @@ function container_stop() {
     fi
     /usr/bin/podman rm "${running_id}"
   fi
+<% end -%>
 }
 
 function container_start() {
+<% if @facts['os']['release']['major'].to_i >= 8 -%>
+  if [ -f "${XDG_RUNTIME_DIR}/<%= @unique_name %>.cid" ]; then
+    echo "Container  <%= @sanitised_con_name %> - ${container_id} still present. Removing..."
+    /usr/bin/podman rm --cidfile "${XDG_RUNTIME_DIR}/<%= @unique_name %>.cid" > /dev/null
+    if [ $? -gt 0 ]; then
+      # maybe it's gone
+      container_id=$(/usr/bin/podman ps -a --format '{{.ID}} {{.Names}}' --filter 'name=<%= @sanitised_con_name %>' | /usr/bin/grep -E ' <%= @sanitised_con_name %>$' | cut -d' ' -f 1)
+      if [[ ! -z "${container_id}" ]]; then
+        echo "Error while removing existing container!"
+        exit 120
+      fi
+    fi
+    [ ! -f "${XDG_RUNTIME_DIR}/<%= @unique_name %>.cid" ] || rm -f "${XDG_RUNTIME_DIR}/<%= @unique_name %>.cid"
+  fi
+<% else -%>
   container_id=$(/usr/bin/podman ps -a --format '{{.ID}} {{.Names}}' --filter 'name=<%= @sanitised_con_name %>' | /usr/bin/grep -E ' <%= @sanitised_con_name %>$' | cut -d' ' -f 1)
   if [[ ! -z "${container_id}" ]]; then
     echo "Container  <%= @sanitised_con_name %> - ${container_id} still present. Removing..."
@@ -32,9 +65,10 @@ function container_start() {
       fi
     fi
   fi
+<% end -%>
   echo "Starting Container <%= @sanitised_con_name %>"
   /usr/bin/podman run -d --name <%= @sanitised_con_name %> \
-    <% if @facts['os']['release']['major'].to_i >= 8 -%>
+<% if @facts['os']['release']['major'].to_i >= 8 -%>
     --replace \
     --cgroup-manager=cgroupfs \
     --conmon-pidfile "${XDG_RUNTIME_DIR}/<%= @unique_name %>.pid" \
@@ -56,7 +90,7 @@ function container_start() {
 end -%>
     --log-driver=<%= @run_flags['log-driver'] || 'journald' %> \
 <% if @run_flags['log-opt'] -%>
-    --log-opt=<%= @run_flags['log-opt'] %> \
+    --log-opt=<%= @run_flags['log-opt'].is_a?(Hash) ? (@run_flags['log-opt'].map{|k,v| "#{k}=#{v}" }.first) : @run_flags['log-opt'] %> \
 <% end -%>
 <% if @run_flags['hostname'] -%>
     --hostname=<%= @run_flags['hostname'] %> \
@@ -95,7 +129,9 @@ end -%>
       echo "Error while starting container <%= @sanitised_con_name %>"
       exit $ret
     fi
+<% if @facts['os']['release']['major'].to_i < 8 -%>
     cp -f "$(/usr/bin/podman container inspect <%= @sanitised_con_name %> -f '{{.ConmonPidFile}}')" "${XDG_RUNTIME_DIR}/<%= @unique_name %>.pid"
+<% end -%>
 }
 
 if [ "$1" == 'stop' ]; then
