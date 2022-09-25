@@ -2,6 +2,15 @@
 Description=<%= @name %> Podman Container
 After=network.target
 
+<% if @has_container_disk -%>
+Requires=var-lib-containers.mount
+After=var-lib-containers.mount
+<% end
+@require_mounts.each do |rm| -%>
+Requires=<%= rm.split('/')[1..-1].map{|s| s.gsub('-','\x2d') }.join('-') %>.mount
+After=<%= rm.split('/')[1..-1].map{|s| s.gsub('-','\x2d') }.join('-') %>.mount
+<% end -%>
+
 [Service]
 Type=simple
 KillMode=none

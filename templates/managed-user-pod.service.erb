@@ -2,6 +2,15 @@
 Description=User Pod <%= @name %>
 After=network.target
 
+<% if @has_container_disk -%>
+Requires=var-lib-containers.mount
+After=var-lib-containers.mount
+<% end
+@require_mounts.each do |rm| -%>
+Requires=<%= rm.split('/')[1..-1].map{|s| s.gsub('-','\x2d') }.join('-') %>.mount
+After=<%= rm.split('/')[1..-1].map{|s| s.gsub('-','\x2d') }.join('-') %>.mount
+<% end -%>
+
 [Service]
 Type=forking
 KillMode=none
@@ -52,7 +61,7 @@ ReadWriteDirectories=/proc
 ReadWriteDirectories=/dev/shm
 <% end -%>
 <% @real_volumes.each do |host_dir,container_dir|
-  if container_dir =~ /.*:(Z,)?rw(,Z)?$/ -%>
+  if container_dir =~ /.*:(Z,)?r(w|o)(,Z)?$/ -%>
 ReadWriteDirectories=<%= host_dir %>
 <% end
 end -%>

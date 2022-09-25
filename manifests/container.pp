@@ -27,6 +27,7 @@ define podman::container (
   Podman::Cronjobs $cron_jobs = {},
   Stdlib::Unixpath $logpath = '/var/log/containers',
   Hash $configuration = {},
+  Array[Stdlib::Unixpath] $require_mounts = [],
 ) {
   if $homedir {
     $real_homedir = $homedir
@@ -46,6 +47,8 @@ define podman::container (
   include podman
   $sanitised_con_name = regsubst($container_name, '[^0-9A-Za-z._]', '-', 'G')
   $unique_name = regsubst("con-${user}-${container_name}", '[^0-9A-Za-z._]', '-', 'G')
+
+  $has_container_disk = ($podman::size_container_disk =~ String)
 
   $_real_volumes = $volumes ? {
     Array   => Hash($volumes.map |$s| {
