@@ -57,6 +57,14 @@ define podman::container::user (
         linger  => enabled,
         require => User::Managed[$name],
       }
+      file {
+        "${homedir}/.config/containers/containers.conf":
+          content => template('podman/users-containers.conf.erb'),
+          owner   => $name,
+          group   => $group,
+          mode    => '0640',
+          before  => Exec["init-podman-config-${name}"];
+      }
     }
 
     file {
@@ -109,7 +117,8 @@ define podman::container::user (
         content => template('podman/users-storage.conf.erb'),
         owner   => $name,
         group   => $group,
-        mode    => '0640';
+        mode    => '0640',
+        before  => Exec["init-podman-config-${name}"];
     }
     File["/var/lib/containers/users/${name}/storage"] {
       seltype => 'data_home_t',
