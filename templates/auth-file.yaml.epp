@@ -2,8 +2,17 @@
     String $name,
 |%>
 ---
-<% $auth.each |$reg,$data| { -%>
+<% if empty($auth.keys) { -%>
+## example config
+# 'registry.example.com':
+#   user: 'userA'
+#   password: 'secret'
+## delete next line
+{}
+<% } else {
+  $auth.each |$reg,$data| { -%>
 '<%= $reg %>':
   user: '<%= $data['user'] %>'
   password: '<%= trocla::gsub($data['password'], { 'prefix' => "container_${name}_" }) %>'
-<% } -%>
+<% }
+}-%>
