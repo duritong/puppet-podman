@@ -1,6 +1,6 @@
-<%| Podman::Auth $auth,
+<%- | Podman::Auth $auth,
     String $name,
-|%>
+| -%>
 ---
 <% if empty($auth.keys) { -%>
 ## example config
