@@ -1,0 +1,44 @@
+module podman-base 1.1;
+
+require {
+	type fusefs_t;
+	type null_device_t;
+	type container_t;
+	type var_lib_t;
+	type urandom_device_t;
+	type mount_t;
+	type container_var_lib_t;
+	type proc_t;
+	type devtty_t;
+	type container_runtime_t;
+	type syslogd_var_run_t;
+	type zero_device_t;
+	type random_device_t;
+	class file { create getattr open read };
+	class dir { add_name read write };
+	class process { noatsecure rlimitinh signal signull };
+	class fifo_file { create open read unlink write };
+	class sock_file { create setattr unlink write };
+	class chr_file mounton;
+	class filesystem associate;
+}
+
+#============= container_t ==============
+allow container_t fusefs_t:sock_file { create setattr unlink write };
+
+#============= container_runtime_t ==============
+allow container_runtime_t container_t:process { noatsecure rlimitinh signal signull };
+allow container_runtime_t container_var_lib_t:fifo_file { create open read unlink write };
+allow container_runtime_t devtty_t:chr_file mounton;
+allow container_runtime_t mount_t:process { noatsecure rlimitinh };
+allow container_runtime_t null_device_t:chr_file mounton;
+allow container_runtime_t random_device_t:chr_file mounton;
+allow container_runtime_t syslogd_var_run_t:dir read;
+allow container_runtime_t urandom_device_t:chr_file mounton;
+allow container_runtime_t var_lib_t:file { getattr open read };
+allow container_runtime_t zero_device_t:chr_file mounton;
+
+#============= container_t ==============
+allow container_t proc_t:filesystem associate;
+allow container_t self:dir { add_name write };
+allow container_t self:file create;
