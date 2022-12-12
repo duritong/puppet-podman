@@ -14,7 +14,7 @@ class podman (
     randomize_delay_sec => '1d',
   },
 ) {
-  if versioncmp($facts['os']['release']['major'],'8') < 0 {
+  if versioncmp($facts['os']['release']['major'],'8') != 0 {
     selinux::policy {
       'podman-base':
         te_source => [ "puppet:///modules/podman/selinux/podman-base.${facts['os']['name']}.${facts['os']['release']['major']}.te",

@@ -1,7 +1,6 @@
 module podman-base 1.1;
 
 require {
-	type fusefs_t;
 	type null_device_t;
 	type container_t;
 	type var_lib_t;
@@ -18,13 +17,9 @@ require {
 	class dir { add_name read write };
 	class process { noatsecure rlimitinh signal signull };
 	class fifo_file { create open read unlink write };
-	class sock_file { create setattr unlink write };
 	class chr_file mounton;
 	class filesystem associate;
 }
-
-#============= container_t ==============
-allow container_t fusefs_t:sock_file { create setattr unlink write };
 
 #============= container_runtime_t ==============
 allow container_runtime_t container_t:process { noatsecure rlimitinh signal signull };
