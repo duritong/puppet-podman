@@ -13,7 +13,6 @@ After=<%= rm.split('/')[1..-1].map{|s| s.gsub('-','\x2d') }.join('-') %>.mount
 
 [Service]
 Type=simple
-KillMode=none
 RemainAfterExit=yes
 Restart=always
 
