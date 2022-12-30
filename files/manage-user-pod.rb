@@ -100,6 +100,9 @@ def parse_volumes(volumes, volumes_base_dir)
     err("Error with volume (#{vol.inspect}) - name already used") if res[vol['name']]
     if vol['hostPath'] && vol['hostPath']['path'] && vol['hostPath']['type'] == 'Directory'
       res[vol['name']] = File.join(volumes_base_dir, File.expand_path(vol['hostPath']['path']))
+      if vol['hostPath']['path'] =~ /^\/(www|logs.*|scripts.*|data|data\/private|private|etc.*)(\/)?$/
+        err("Volumes directory path '#{vol['hostPath']['path']}' must not match /^\/(www|logs.*|scripts.*|data|data\/private|private|etc.*)(\/)?$/'")
+      end
       err("Non-existing volumes directory: '#{res[vol['name']]}'") unless File.directory?(res[vol['name']])
     elsif vol['hostPath'] && vol['hostPath']['path'] && vol['hostPath']['type'] == 'File'
       res[vol['name']] = File.join(volumes_base_dir, File.expand_path(vol['hostPath']['path']))
