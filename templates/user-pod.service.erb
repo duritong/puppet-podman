@@ -13,6 +13,9 @@ After=<%= rm.split('/')[1..-1].map{|s| s.gsub('-','\x2d') }.join('-') %>.mount
 
 [Service]
 Type=simple
+<% if @facts['os']['release']['major'].to_i < 8 -%>
+KillMode=none
+<% end -%>
 RemainAfterExit=yes
 Restart=always
 

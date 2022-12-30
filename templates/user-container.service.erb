@@ -13,6 +13,9 @@ After=<%= rm.split('/')[1..-1].map{|s| s.gsub('-','\x2d') }.join('-') %>.mount
 
 [Service]
 Type=forking
+<% if @facts['os']['release']['major'].to_i < 8 -%>
+KillMode=none
+<% end -%>
 Restart=always
 PIDFile=/run/pods/<%= @uid %>/<%= @unique_name %>.pid
 
