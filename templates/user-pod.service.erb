@@ -35,10 +35,6 @@ ExecStart=/usr/bin/podman play kube <%= @pod_yaml_path %>
 
 ExecStop=-/usr/bin/podman pod stop <%= @sanitised_con_name %>
 ExecStop=-/usr/bin/podman pod rm -f <%= @sanitised_con_name %>
-
-ExecReload=-/usr/bin/podman pod stop <%= @sanitised_con_name %>
-ExecReload=-/usr/bin/podman pod rm -f <%= @sanitised_con_name %>
-
 <% if @configuration['systemd'] -%>
 <%= @configuration['systemd'].map{|k,v| "#{k}=#{v}" }.join("\n") %>
 
