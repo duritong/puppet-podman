@@ -189,6 +189,8 @@ define podman::container (
           exposed_ports => $publish_firewall,
           pidfile       => "/run/pods/${uid}/${unique_name}.pid",
           name          => $sanitised_con_name,
+          userns        => $run_flags['userns'],
+          network_mode  => $run_flags['network_mode'],
           selinux_label => $run_flags['security-opt-label-type'],
         }
         File[$pod_system_yaml_path] {
