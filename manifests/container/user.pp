@@ -164,7 +164,10 @@ define podman::container::user (
     Systemd::Tmpfile["podman_tmp_${name}.conf"] {
       ensure => absent,
     }
-    File["/var/lib/containers/users/${name}"] {
+    exec { "cleanup_podman_users_${name}":
+      command => "rm -rf /var/lib/containers/users/${name}",
+      onlyif  => "test -d /var/lib/containers/users/${name}",
+    } -> File["/var/lib/containers/users/${name}"] {
       ensure  => absent,
       purge   => true,
       force   => true,
