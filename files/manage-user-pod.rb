@@ -132,6 +132,15 @@ def parse_containers(containers, volumes, pod_specs, system_controls)
   exposed_ports = system_controls['exposed_ports'].dup
   system_controls['exposed_ports'] = []
 
+  all_ports = containers.map do |con|
+    Array(con['ports']).map{|p| "#{p['containerPort'].to_i}/#{(p['protocol'] || 'tcp').downcase}"}
+  end.flatten
+  (socket_ports.keys.map{|p| "#{p}/tcp"} + exposed_ports.map(&:downcase)).each do |port|
+    unless all_ports.include?(port)
+      err("Cannot expose port '#{port}' since it's not published by any container")
+    end
+  end
+
   containers.each_with_object({}) do |con,res|
     err("Error with container (#{con.inspect}) - must contain name") if con['name'].nil?
     err("Error with container #{con['name']} - name already used") if res[con['name']]
