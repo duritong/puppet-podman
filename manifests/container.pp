@@ -11,6 +11,7 @@ define podman::container (
   Optional[String] $command = undef,
   Optional[String] $pod_file = undef,
   Boolean $replace_pod_file = true,
+  Boolean $activate_service = true,
   Podman::Publish $publish = [],
   Podman::Socketports $publish_socket = {},
   Array[Pattern[/^[a-zA-Z0-9_]+=.+$/]] $envs = [],
@@ -233,8 +234,8 @@ define podman::container (
   if $ensure != 'absent' {
     Systemd::Unit_file["${unique_name}.service"] {
       content => template($systemd_unit_file),
-      enable  => true,
-      active  => true,
+      enable  => $activate_service,
+      active  => $activate_service,
       require => Package['podman'],
     }
   } else {
