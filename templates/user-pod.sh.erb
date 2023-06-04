@@ -127,9 +127,19 @@ end -%>
       echo "Error while starting container <%= @sanitised_con_name %>"
       exit $ret
     fi
-<% if @facts['os']['release']['major'].to_i < 8 -%>
-    cp -f "$(/usr/bin/podman container inspect <%= @sanitised_con_name %> -f '{{.ConmonPidFile}}')" "${XDG_RUNTIME_DIR}/<%= @unique_name %>.pid"
-<% end -%>
+    pid_file=$(/usr/bin/podman container inspect <%= @sanitised_con_name %> -f '{{.ConmonPidFile}}')
+
+    timeout=10
+    SECONDS=0
+    until [ -f "${pid_file}" ] || (( SECONDS >= timeout ))
+    do
+      sleep 1
+    done
+    if [ ! -f "${pid_file}" ];
+      echo "Can't find pid file ${pid_file} of container <%= @sanitised_con_name %>! Aborting..."
+      exit 1
+    fi
+    cp -f "${pid_file}" "${XDG_RUNTIME_DIR}/<%= @unique_name %>.pid"
 }
 
 if [ "$1" == 'stop' ]; then
