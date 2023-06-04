@@ -365,15 +365,12 @@ define podman::container (
       $port_arr = split(String($pport),/\//)
       $proto = pick($port_arr[1],'tcp')
       if $publish.any |$p| { $p =~ Regexp("^${port_arr[0]}:([0-9]+)?(/${proto})?$") } {
-        shorewall::rule {
-          "${unique_name}-${pport}":
-            destination     => '$FW',
-            source          => 'net',
-            order           => 240,
-            proto           => $proto,
-            destinationport => $port_arr[0],
-            action          => 'ACCEPT',
-            require         => Systemd::Unit_file["${unique_name}.service"],
+        firewall::rule {
+          "${unique_name}_${pport}":
+            direction => 'in',
+            proto     => $proto,
+            port      => Integer($port_arr[0]),
+            require   => Systemd::Unit_file["${unique_name}.service"],
         }
       }
     }
