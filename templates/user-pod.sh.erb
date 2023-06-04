@@ -135,7 +135,7 @@ end -%>
     do
       sleep 1
     done
-    if [ ! -f "${pid_file}" ];
+    if [ ! -f "${pid_file}" ]; then
       echo "Can't find pid file ${pid_file} of container <%= @sanitised_con_name %>! Aborting..."
       exit 1
     fi
