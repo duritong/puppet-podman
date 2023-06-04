@@ -366,7 +366,7 @@ define podman::container (
       $proto = pick($port_arr[1],'tcp')
       if $publish.any |$p| { $p =~ Regexp("^${port_arr[0]}:([0-9]+)?(/${proto})?$") } {
         firewall::rule {
-          "${unique_name}_${pport}":
+          "${unique_name}_${pport}".regsubst('-','_','G'):
             direction => 'in',
             proto     => $proto,
             port      => Integer($port_arr[0]),
