@@ -170,7 +170,7 @@ define podman::container (
         $pod_file_content = template($pod_file)
       }
       File[$pod_yaml_path] {
-        content => Sensitive(trocla::gsub($pod_file_content, { prefix => "container_${name}_", key_to_prefix => $configuration["trocla_key_to_prefix"] })),
+        content => Sensitive(trocla::gsub($pod_file_content, { prefix => "container_${name}_", key_to_prefix => $configuration["trocla_key_to_prefix"], })),
         replace => $replace_pod_file,
         group   => $real_gid,
         mode    => '0640',
@@ -391,7 +391,7 @@ define podman::container (
         if $v['content'] =~ /\AERB:/ {
           $tmp_content = template($v['content'].regsubst(/\AERB:/,''))
           if $tmp_content =~ /%%TROCLA_/ {
-            $_content = trocla::gsub($tmp_content, { prefix => "container_${name}_", })
+            $_content = trocla::gsub($tmp_content, { prefix => "container_${name}_", key_to_prefix => $configuration["trocla_key_to_prefix"], })
           } else {
             $_content = $tmp_content
           }
