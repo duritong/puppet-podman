@@ -170,7 +170,7 @@ define podman::container (
         $pod_file_content = template($pod_file)
       }
       File[$pod_yaml_path] {
-        content => Sensitive(trocla::gsub($pod_file_content, { prefix => "container_${name}_", })),
+        content => Sensitive(trocla::gsub($pod_file_content, { prefix => "container_${name}_", key_to_prefix => $configuration["trocla_key_to_prefix"] })),
         replace => $replace_pod_file,
         group   => $real_gid,
         mode    => '0640',
