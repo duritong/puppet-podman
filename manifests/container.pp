@@ -427,7 +427,7 @@ define podman::container (
       require systemd::mail_on_failure
     }
     $cron_jobs.each |$cron_name,$cron_vals| {
-      $timer_params = $podman::cron_timer_defaults.merge($cron_vals.filter |$i| { $i[0] in ['on_calendar', 'randomize_delay_sec'] })
+      $timer_params = $podman::cron_timer_defaults.merge($cron_vals.filter |$i| { $i[0] in ['on_calendar', 'randomized_delay_sec'] })
       $service_params = {
         cron_name       => $cron_name,
         container_name  => $sanitised_con_name,

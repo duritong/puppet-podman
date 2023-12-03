@@ -11,7 +11,7 @@ class podman (
   $use_rkhunter        = true,
   $cron_timer_defaults = {
     on_calendar         => 'daily',
-    randomize_delay_sec => '1d',
+    randomized_delay_sec => '1d',
   },
 ) {
   if versioncmp($facts['os']['release']['major'],'8') != 0 {
