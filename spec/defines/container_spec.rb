@@ -54,5 +54,16 @@ describe 'podman::container' do
 
       it { is_expected.to compile }
     end
+
+    context 'as api-socket' do
+      let(:params) do
+        super().merge(
+          deployment_mode: 'api-socket',
+        )
+      end
+
+      it { is_expected.to compile }
+    end
+
   end
 end

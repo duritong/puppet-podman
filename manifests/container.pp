@@ -6,7 +6,7 @@ define podman::container (
   Optional[Pattern[/^[\S]*$/]] $image = undef,
   Optional[String[1]] $group = undef,
   Enum['present','absent'] $ensure = 'present',
-  Enum['userpod','pod','container'] $deployment_mode = 'container',
+  Enum['userpod','pod','container','api-socket'] $deployment_mode = 'container',
   String $container_name = $name,
   Optional[String] $command = undef,
   Optional[String] $pod_file = undef,
@@ -213,6 +213,8 @@ define podman::container (
     } else {
       $systemd_unit_file = 'podman/user-pod.service.erb'
     }
+  } elsif $deployment_mode == 'api-socket' {
+    $systemd_unit_file = 'podman/user-api-socket.service.erb'
   } else {
     file {
       "/var/lib/containers/users/${user}/bin/${unique_name}.sh":
@@ -318,7 +320,7 @@ define podman::container (
           uid     => $uid,
           homedir => $real_homedir,
       } -> Systemd::Unit_file["${unique_name}.service"]
-    } else {
+    } elsif $deployment_mode != 'api-socket' {
       podman::pod_images {
         $name:
           user     => $user,
