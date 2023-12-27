@@ -100,7 +100,11 @@ class podman (
       setype  => 'container_runtime_exec_t',
       require => Package['podman'];
   } -> Podman::Container<| |>
-  file {
+
+  selinux::fcontext {
+    '/var/lib/containers/users/[^/]+/tmpdir(/.*)?':
+      setype  => 'tmp_t',
+  } -> file {
     '/var/lib/containers/users':
       ensure => directory,
       owner  => 'root',

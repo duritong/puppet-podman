@@ -59,11 +59,12 @@ define podman::container::user (
       }
       file {
         "${homedir}/.config/containers/containers.conf":
-          content => template('podman/users-containers.conf.erb'),
+          content => epp('podman/users-containers.conf.epp', { user => $name }),
           owner   => $name,
           group   => $group,
           mode    => '0640',
-          before  => Exec["init-podman-config-${name}"];
+          before  => Exec["init-podman-config-${name}"],
+          require => File["/var/lib/containers/users/${name}/tmpdir"];
       }
     }
 
@@ -95,6 +96,12 @@ define podman::container::user (
         group   => $group,
         seltype => 'data_home_t',
         mode    => '0640';
+      "/var/lib/containers/users/${name}/tmpdir":
+        ensure  => directory,
+        owner   => $name,
+        group   => $group,
+        seltype => 'tmp_t',
+        mode    => '0600';
       "/var/lib/containers/users/${name}/bin":
         ensure  => directory,
         owner   => 'root',

@@ -1,0 +1,4 @@
+<%| String[1] $user |%>
+[engine]
+cgroup_manager = "cgroupfs"
+env = ["TMPDIR=/var/lib/containers/users/<%= $user %>/tmpdir"]
