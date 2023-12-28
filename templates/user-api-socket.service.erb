@@ -1,15 +1,6 @@
 [Unit]
-Description=Podman API Service <%= @name %>
+Description=Podman API Service for <%= @name %>
 After=network.target
-
-<% if @has_container_disk -%>
-Requires=var-lib-containers.mount
-After=var-lib-containers.mount
-<% end
-@require_mounts.each do |rm| -%>
-Requires=<%= rm.split('/')[1..-1].map{|s| s.gsub('-','\x2d') }.join('-') %>.mount
-After=<%= rm.split('/')[1..-1].map{|s| s.gsub('-','\x2d') }.join('-') %>.mount
-<% end -%>
 
 [Service]
 Delegate=true
@@ -17,19 +8,15 @@ Type=exec
 KillMode=process
 Restart=always
 
-User=<%= @user %>
+User=<%= @name %>
 Group=<%= @real_group %>
 
-Environment="XDG_RUNTIME_DIR=/run/pods/<%= @uid %>" "REGISTRY_AUTH_FILE=/var/lib/containers/users/<%= @user %>/data/auth.json"
+Environment="XDG_RUNTIME_DIR=/run/pods/<%= @uid %>"
 
 SyslogIdentifier=<%= @unique_name %>
 
 ExecStart=/usr/bin/podman system service --timeout=0
 
-<% if @configuration['systemd'] -%>
-<%= @configuration['systemd'].map{|k,v| "#{k}=#{v}" }.join("\n") %>
-
-<% end -%>
 # security settings
 PrivateTmp=true
 <% if @real_homedir !~ /^\/home\// -%>
@@ -41,17 +28,12 @@ ProtectSystem=strict
 
 ReadOnlyDirectories=/
 ReadWriteDirectories=<%= @real_homedir %>
-ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/run/
-ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/data/
-ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/storage/
+ReadWriteDirectories=/var/lib/containers/users/<%= @name %>/run/
+ReadWriteDirectories=/var/lib/containers/users/<%= @name %>/data/
+ReadWriteDirectories=/var/lib/containers/users/<%= @name %>/storage/
 ReadWriteDirectories=/run/pods/<%= @uid %>/
 ReadWriteDirectories=/proc
 ReadWriteDirectories=/dev/shm
-<% @real_volumes.each do |host_dir,container_dir|
-  if container_dir =~ /.*:(Z,)?r(w|o)(,Z)?$/ -%>
-ReadWriteDirectories=<%= host_dir %>
-<% end
-end -%>
 
 [Install]
 WantedBy=multi-user.target

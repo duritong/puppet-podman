@@ -8,6 +8,7 @@ class podman (
   $size_container_disk = '5G',
   $containers_lv       = 'containers_lv',
   $containers          = {},
+  $api_sockets         = {},
   $use_rkhunter        = true,
   $cron_timer_defaults = {
     on_calendar         => 'daily',
@@ -117,6 +118,13 @@ class podman (
     podman::container {
       $n:
         * => $con,
+    }
+  }
+
+  $api_sockets.each |$n,$sock| {
+    podman::api_socket {
+      $n:
+        * => $sock,
     }
   }
 
