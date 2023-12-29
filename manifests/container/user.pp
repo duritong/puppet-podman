@@ -135,10 +135,15 @@ define podman::container::user (
       recurse => true,
       force   => true,
     }
+    if versioncmp($facts['os']['release']['major'],'8') > 0 {
+      $test_file = "/var/lib/containers/users/${name}/storage/defaultNetworkBackend"
+    } else {
+      $test_file = "/var/lib/containers/users/${name}/storage/libpod/bolt_state.db"
+    }
     exec {
       "init-podman-config-${name}":
         command     => 'podman info',
-        creates     => "/var/lib/containers/users/${name}/storage/libpod/bolt_state.db",
+        creates     => $test_file,
         user        => $name,
         group       => $group,
         cwd         => $homedir,
