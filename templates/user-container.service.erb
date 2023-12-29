@@ -55,6 +55,7 @@ ReadWriteDirectories=<%= @real_homedir %>
 ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/run/
 ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/data/
 ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/storage/
+ReadWriteDirectories=/var/lib/containers/users/<%= @user %>/tmpdir/
 ReadWriteDirectories=/run/pods/<%= @uid %>/
 ReadWriteDirectories=/proc
 <% if @facts['os']['release']['major'].to_i >= 8 -%>

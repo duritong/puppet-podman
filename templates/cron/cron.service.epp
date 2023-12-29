@@ -51,4 +51,6 @@ ReadOnlyDirectories=/
 ReadWriteDirectories=<%= $homedir %>
 ReadWriteDirectories=/var/lib/containers/users/<%= $user %>/run/
 ReadWriteDirectories=/var/lib/containers/users/<%= $user %>/storage/
+ReadWriteDirectories=/var/lib/containers/users/<%= $user %>/data/
+ReadWriteDirectories=/var/lib/containers/users/<%= $user %>/tmpdir/
 ReadWriteDirectories=/run/pods/<%= $uid %>/
