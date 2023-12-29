@@ -334,18 +334,6 @@ define podman::container (
       } else {
         $pod_name = $sanitised_con_name
       }
-
-      # make sure we have also the pause image fetched
-      if !defined(Podman::Image["${user}-pause"]) {
-        podman::image {
-          "${user}-pause":
-            user    => $user,
-            group   => $real_group,
-            image   => 'k8s.gcr.io/pause:3.1',
-            uid     => $uid,
-            homedir => $real_homedir,
-        } -> Systemd::Unit_file["${unique_name}.service"]
-      }
     } else {
       $pod_name = undef
     }
