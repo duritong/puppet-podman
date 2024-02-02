@@ -12,6 +12,7 @@ User=<%= @name %>
 Group=<%= @real_group %>
 
 Environment="XDG_RUNTIME_DIR=/run/pods/<%= @uid %>"
+Environment="DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/<%= @uid %>/bus"
 
 SyslogIdentifier=<%= @unique_name %>
 
