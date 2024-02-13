@@ -172,6 +172,12 @@ define podman::container::user (
       subscribe   => Concat["podman-auth-files-${name}"],
     }
   } else {
+    if versioncmp($facts['os']['release']['major'],'7') > 0 {
+      loginctl_user { $name:
+        linger => disabled,
+        before => User::Managed[$name],
+      }
+    }
     Concat[$image_lifecycle_cron] -> User::Managed[$name]
     Systemd::Tmpfile["podman_tmp_${name}.conf"] {
       ensure => absent,
