@@ -172,7 +172,7 @@ define podman::container::user (
       subscribe   => Concat["podman-auth-files-${name}"],
     }
   } else {
-    if versioncmp($facts['os']['release']['major'],'7') > 0 {
+    if (versioncmp($facts['os']['release']['major'],'7') > 0) and ('subids' in $facts and $name in $facts['subids']['uids']) {
       loginctl_user { $name:
         linger => disabled,
         before => User::Managed[$name],
