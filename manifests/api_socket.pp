@@ -8,6 +8,10 @@ define podman::api_socket (
   Optional[Stdlib::Unixpath] $homedir = undef,
   Boolean $manageuserhome = true,
   Boolean $manage_user = true,
+  # this is intentionally false, otherwise the podman over the socket
+  # will have a wrong runroot
+  Boolean $manage_xdg_runtime = false,
+  Array[Stdlib::Unixpath] $readwrite_dirs = [],
 ) {
   if empty($name) {
     $name = $name
@@ -33,13 +37,14 @@ define podman::api_socket (
   if !defined(Podman::Container::User[$name]) {
     podman::container::user {
       $name:
-        ensure      => $ensure,
-        manage_user => $manage_user,
-        group       => $real_group,
-        uid         => $uid,
-        gid         => $real_gid,
-        homedir     => $real_homedir,
-        managehome  => $manageuserhome,
+        ensure             => $ensure,
+        manage_user        => $manage_user,
+        group              => $real_group,
+        uid                => $uid,
+        gid                => $real_gid,
+        homedir            => $real_homedir,
+        managehome         => $manageuserhome,
+        manage_xdg_runtime => $manage_xdg_runtime,
     }
   }
 

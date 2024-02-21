@@ -8,6 +8,7 @@ define podman::container::user (
   String[1] $group = $name,
   Boolean $managehome = true,
   Boolean $manage_user = true,
+  Boolean $manage_xdg_runtime = true,
 ) {
   file {
     "/var/lib/containers/users/${name}":
@@ -68,6 +69,11 @@ define podman::container::user (
       }
     }
 
+    if $manage_xdg_runtime {
+      $bashrc_content = "export XDG_RUNTIME_DIR=/run/pods/${uid}\nexport REGISTRY_AUTH_FILE=/var/lib/containers/users/${name}/data/auth.json"
+    } else {
+      $bashrc_content = "export REGISTRY_AUTH_FILE=/var/lib/containers/users/${name}/data/auth.json"
+    }
     file {
       "${homedir}/.bash_profile":
         content => "[[ -r ~/.bashrc ]] && . ~/.bashrc\n",
@@ -75,7 +81,7 @@ define podman::container::user (
         group   => $group,
         mode    => '0640';
       "${homedir}/.bashrc":
-        content => "export XDG_RUNTIME_DIR=/run/pods/${uid}\nexport REGISTRY_AUTH_FILE=/var/lib/containers/users/${name}/data/auth.json",
+        content => $bashrc_content,
         owner   => 'root',
         group   => $group,
         mode    => '0640';
@@ -140,6 +146,11 @@ define podman::container::user (
     } else {
       $test_file = "/var/lib/containers/users/${name}/storage/libpod/bolt_state.db"
     }
+    if $manage_xdg_runtime {
+      $init_environment = ["HOME=${homedir}", "XDG_RUNTIME_DIR=/run/pods/${uid}"]
+    } else {
+      $init_environment = ["HOME=${homedir}"]
+    }
     exec {
       "init-podman-config-${name}":
         command     => 'podman info',
@@ -151,7 +162,7 @@ define podman::container::user (
         require     => [File["${homedir}/.config/containers"],
                         Exec['systemd-tmpfiles']],
         # lint:endignore
-        environment => ["HOME=${homedir}", "XDG_RUNTIME_DIR=/run/pods/${uid}"],
+        environment => $init_environment,
     } -> concat { "podman-auth-files-${name}":
       path    => "/var/lib/containers/users/${name}/data/auth_files.args",
       owner   => 'root',

@@ -11,7 +11,9 @@ Restart=always
 User=<%= @name %>
 Group=<%= @real_group %>
 
+<% if @manage_xdg_runtime -%>
 Environment="XDG_RUNTIME_DIR=/run/pods/<%= @uid %>"
+<% end -%>
 Environment="DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/<%= @uid %>/bus"
 
 SyslogIdentifier=<%= @unique_name %>
@@ -33,7 +35,13 @@ ReadWriteDirectories=/var/lib/containers/users/<%= @name %>/run/
 ReadWriteDirectories=/var/lib/containers/users/<%= @name %>/data/
 ReadWriteDirectories=/var/lib/containers/users/<%= @name %>/storage/
 ReadWriteDirectories=/var/lib/containers/users/<%= @name %>/tmpdir/
+<% Array(@readwrite_dirs).each do |rw| -%>
+ReadWriteDirectories=<%= rw %>
+<% end -%>
 ReadWriteDirectories=/run/pods/<%= @uid %>/
+<% unless @manage_xdg_runtime -%>
+ReadWriteDirectories=/tmp
+<% end -%>
 ReadWriteDirectories=/proc
 ReadWriteDirectories=/dev/shm
 

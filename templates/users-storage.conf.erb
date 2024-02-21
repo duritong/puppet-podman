@@ -1,6 +1,8 @@
 [storage]
   driver = "overlay"
+<% if $manage_xdg_runtime -%>
   runroot = "/var/lib/containers/users/<%= @name %>/run"
+<% end -%>
   graphroot = "/var/lib/containers/users/<%= @name %>/storage"
   [storage.options]
     mount_program = "/bin/fuse-overlayfs"
