@@ -1,8 +1,6 @@
 [Unit]
 Description=Podman API Service for <%= @name %>
 After=network.target
-Requires=user@<%= @uid %>.service
-After=user@<%= @uid %>.service
 
 [Service]
 Delegate=true
@@ -40,8 +38,10 @@ ReadWriteDirectories=/var/lib/containers/users/<%= @name %>/tmpdir/
 <% Array(@readwrite_dirs).each do |rw| -%>
 ReadWriteDirectories=<%= rw %>
 <% end -%>
+<% if @manage_xdg_runtime -%>
 ReadWriteDirectories=/run/pods/<%= @uid %>/
-<% unless @manage_xdg_runtime -%>
+<% else -%>
+ReadWriteDirectories=/run/user/<%= @uid %>/
 ReadWriteDirectories=/tmp
 <% end -%>
 ReadWriteDirectories=/proc
