@@ -1,6 +1,8 @@
 [Unit]
 Description=Podman API Service for <%= @name %>
 After=network.target
+Requires=user@<%= @uid %>.service
+After=user@<%= @uid %>.service
 
 [Service]
 Delegate=true
