@@ -1,7 +1,7 @@
 # manages a user that runs a container
 define podman::container::user (
   Variant[String[1],Integer] $uid,
-  Stdlib::Compat::Absolute_Path $homedir,
+  Stdlib::Absolutepath $homedir,
   Variant[String[1],Integer] $gid = 'uid',
   Enum['present','absent'] $ensure = 'present',
   Stdlib::Filemode $homedir_mode = '0750',

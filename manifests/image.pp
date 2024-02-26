@@ -2,7 +2,7 @@
 define podman::image (
   String[1,32] $user,
   Integer $uid,
-  Stdlib::Compat::Absolute_Path $homedir,
+  Stdlib::Absolutepath $homedir,
   Pattern[/^[\S]*$/] $image = $title,
   Optional[String[1,32]] $group = undef,
 ) {

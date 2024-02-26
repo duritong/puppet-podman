@@ -2,7 +2,7 @@
 define podman::pod_images (
   String[1,32] $user,
   Integer $uid,
-  Stdlib::Compat::Absolute_Path $homedir,
+  Stdlib::Absolutepath $homedir,
   Stdlib::Unixpath $pod_yaml = $title,
   Optional[String[1,32]] $group = undef,
 ) {
