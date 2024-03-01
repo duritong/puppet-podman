@@ -154,7 +154,7 @@ define podman::container::user (
     }
     exec {
       "init-podman-config-${name}":
-        command     => 'podman info',
+        command     => 'bash -c "XDG_RUNTIME_DIR= podman info --log-level debug"',
         creates     => $test_file,
         user        => $name,
         group       => $group,
