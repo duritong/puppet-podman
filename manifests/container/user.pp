@@ -57,6 +57,7 @@ define podman::container::user (
       loginctl_user { $name:
         linger  => enabled,
         require => User::Managed[$name],
+        before  => Exec["init-podman-config-${name}"],
       }
       file {
         "${homedir}/.config/containers/containers.conf":
