@@ -149,12 +149,14 @@ define podman::container::user (
     }
     if $manage_xdg_runtime {
       $init_environment = ["HOME=${homedir}", "XDG_RUNTIME_DIR=/run/pods/${uid}"]
+      $init_cmd_env = "XDG_RUNTIME_DIR=/run/pods/${uid}"
     } else {
       $init_environment = ["HOME=${homedir}"]
+      $init_cmd_env = 'XDG_RUNTIME_DIR='
     }
     exec {
       "init-podman-config-${name}":
-        command     => 'bash -c "XDG_RUNTIME_DIR= podman info --log-level debug"',
+        command     => "bash -c '${init_cmd_env} podman info --log-level debug'",
         creates     => $test_file,
         user        => $name,
         group       => $group,
