@@ -62,7 +62,7 @@ ReadWriteDirectories=/proc
 ReadWriteDirectories=/dev/shm
 <% end -%>
 <% @real_volumes.each do |host_dir,container_dir|
-  if container_dir =~ /.*:(Z,)?r(w|o)(,Z)?$/ -%>
+  if host_dir =~ /^\// && container_dir =~ /.*:(Z,)?r(w|o)(,Z)?$/ -%>
 ReadWriteDirectories=<%= host_dir %>
 <% end
 end -%>
